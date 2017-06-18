@@ -2,10 +2,8 @@ package com.shopspreeng.android.udacitybakingapp.ui;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,18 +11,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.R;
+import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
 import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
-import com.shopspreeng.android.udacitybakingapp.data.RecipeObject;
+import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -35,7 +31,7 @@ import okhttp3.Response;
  * Activities that contain this fragment must implement the
  * to handle interaction events.
  */
-public class RecipeCardFragment extends Fragment implements ReciperAdapter.ItemClickListener{
+public class RecipeCardFragment extends Fragment implements ReciperAdapter.ItemClickListener {
 
     OnRecipeClickListener mListener;
 
@@ -52,11 +48,11 @@ public class RecipeCardFragment extends Fragment implements ReciperAdapter.ItemC
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView =  inflater.inflate(R.layout.fragment_recipe_card, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_recipe_card, container, false);
 
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recipe_recycler);
 
-        mAdapter = new ReciperAdapter(getActivity(),new HashMap<String,ArrayList<RecipeObject>>());
+        mAdapter = new ReciperAdapter(getActivity(), new ArrayList<Recipe>());
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -90,15 +86,35 @@ public class RecipeCardFragment extends Fragment implements ReciperAdapter.ItemC
     }
 
     @Override
-    public void onItemClick(View view, int position) {
+    public void onItemClick(View view, int position, final String recipe) {
 
-        mListener.onRecipeClick(view,position);
+        mListener.onRecipeClick(view, position,recipe);
 
-        Intent intent = new Intent(getActivity(),DetailActivity.class);
-        String key = mAdapter.getItemPosition(position);
+        new AsyncTask<Void, Void, ArrayList<Step>>() {
+            @Override
+            protected ArrayList<Step> doInBackground(Void... voids) {
+                ArrayList<Step> result = new ArrayList<>();
+                try {
+                    result = NetworkUtils.extractStepsFromJson(run(NetworkUtils.buildBaseUrl().toString()),recipe);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return result;
+            }
 
+            @Override
+            protected void onPostExecute(ArrayList<Step> step) {
+                super.onPostExecute(step);
+                Toast.makeText(getContext(), "fragment click", Toast.LENGTH_SHORT).show();
+                Intent detailIntent = new Intent(getActivity(),DetailActivity.class);
+                Bundle b = new Bundle();
+                b.putString(getString(R.string.name),recipe);
+                b.putParcelableArrayList(getString(R.string.steps),step);
+                detailIntent.putExtras(b);
+                startActivity(detailIntent);
+            }
+        }.execute();
 
-        //startActivity(intent);
     }
 
 
@@ -114,33 +130,26 @@ public class RecipeCardFragment extends Fragment implements ReciperAdapter.ItemC
      */
 
     public interface OnRecipeClickListener {
-        // TODO: Update argument type and name
-        void onRecipeClick(View view,int position);
+        void onRecipeClick(View view, int position, String recipe);
     }
 
-    private class RecipeAsync extends AsyncTask<Void,Void,Map<String,ArrayList<RecipeObject>>> {
+    private class RecipeAsync extends AsyncTask<Void, Void, ArrayList<Recipe>> {
 
         @Override
-        protected Map<String, ArrayList<RecipeObject>> doInBackground(Void... voids) {
-            ArrayList<RecipeObject> recipeResult;
-            Map<String,ArrayList<RecipeObject>> allList = new HashMap<>();
+        protected ArrayList<Recipe> doInBackground(Void... voids) {
+            ArrayList<Recipe> recipeResult = new ArrayList<>();
             try {
-                allList = NetworkUtils.extractFromJson(run(NetworkUtils.buildBaseUrl().toString()));
+                recipeResult = NetworkUtils.extractRecipeFromJson(run(NetworkUtils.buildBaseUrl().toString()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            return allList;
+            return recipeResult;
         }
 
         @Override
-        protected void onPostExecute(Map<String,ArrayList<RecipeObject>> map) {
-            Log.v("MAP SIZE", map.size()+"");
-            for(String keys:map.keySet()){
-                Log.v(keys, keys);
-            }
-            mAdapter.setRecipe(map);
-
+        protected void onPostExecute(ArrayList<Recipe> recipeResult) {
+            mAdapter.setRecipe(recipeResult);
         }
     }
 

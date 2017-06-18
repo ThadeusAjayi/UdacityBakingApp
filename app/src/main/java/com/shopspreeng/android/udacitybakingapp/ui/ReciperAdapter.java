@@ -2,7 +2,6 @@ package com.shopspreeng.android.udacitybakingapp.ui;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,15 +9,9 @@ import android.widget.TextView;
 
 import com.shopspreeng.android.udacitybakingapp.R;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
-import com.shopspreeng.android.udacitybakingapp.data.RecipeObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
-import static android.R.attr.key;
 
 /**
  * Created by jayson surface on 14/06/2017.
@@ -27,21 +20,16 @@ import static android.R.attr.key;
 public class ReciperAdapter extends RecyclerView.Adapter<ReciperAdapter.RecipeViewHolder> {
 
     LayoutInflater inflater;
-    ArrayList<String> keys = new ArrayList<>();
     ItemClickListener mClickListener;
-    Map<String,ArrayList<RecipeObject>> mRecipeMap = new HashMap<>();
-    ArrayList<String> position = new ArrayList<>();
+    ArrayList<Recipe> mRecipe;
 
-    public ReciperAdapter(Context context, Map<String,ArrayList<RecipeObject>> recipe){
+    public ReciperAdapter(Context context, ArrayList<Recipe> recipe){
         inflater = LayoutInflater.from(context);
-        mRecipeMap = recipe;
+        mRecipe = recipe;
     }
 
-    public void setRecipe(Map<String,ArrayList<RecipeObject>> recipe){
-        mRecipeMap = recipe;
-        for(String key: mRecipeMap.keySet()){
-            keys.add(key);
-        }
+    public void setRecipe(ArrayList<Recipe> recipe){
+        mRecipe = recipe;
         notifyDataSetChanged();
     }
 
@@ -57,19 +45,15 @@ public class ReciperAdapter extends RecyclerView.Adapter<ReciperAdapter.RecipeVi
 
     @Override
     public void onBindViewHolder(RecipeViewHolder holder, int position) {
-
-        holder.titleHead.setText(keys.get(position));
-
+        String currentRecipe = mRecipe.get(position).getmName();
+        holder.titleHead.setText(currentRecipe);
     }
 
     @Override
     public int getItemCount() {
-        return mRecipeMap.size();
+        return mRecipe.size();
     }
 
-    public String getItemPosition(int key){
-        return position.get(key);
-    }
 
     public class RecipeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
@@ -83,7 +67,7 @@ public class ReciperAdapter extends RecyclerView.Adapter<ReciperAdapter.RecipeVi
 
         @Override
         public void onClick(View view) {
-            mClickListener.onItemClick(view,getAdapterPosition());
+            mClickListener.onItemClick(view,getAdapterPosition(),titleHead.getText().toString());
         }
     }
 
@@ -92,7 +76,7 @@ public class ReciperAdapter extends RecyclerView.Adapter<ReciperAdapter.RecipeVi
     }
 
     interface ItemClickListener{
-        void onItemClick(View view, int position);
+        void onItemClick(View view, int position,String recipe);
     }
 
 

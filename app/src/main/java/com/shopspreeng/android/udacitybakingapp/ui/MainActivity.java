@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.R;
+import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
 import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 
@@ -28,6 +29,8 @@ import static android.os.Build.VERSION_CODES.N;
 public class MainActivity extends AppCompatActivity implements
         RecipeCardFragment.OnRecipeClickListener {
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +38,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onRecipeClick(View view, int position) {
+    public void onRecipeClick(View view, int position,final String recipe) {
+        Toast.makeText(getApplicationContext(),"main click" + position + " " + recipe,Toast.LENGTH_SHORT)
+                .show();
 
     }
 }
