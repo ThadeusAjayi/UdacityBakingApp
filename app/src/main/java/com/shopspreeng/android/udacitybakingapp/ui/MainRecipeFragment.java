@@ -7,14 +7,12 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.R;
-import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
 import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 import com.shopspreeng.android.udacitybakingapp.data.Step;
@@ -31,15 +29,15 @@ import okhttp3.Response;
  * Activities that contain this fragment must implement the
  * to handle interaction events.
  */
-public class RecipeCardFragment extends Fragment implements ReciperAdapter.ItemClickListener {
+public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.ItemClickListener {
 
     OnRecipeClickListener mListener;
 
     private RecyclerView mRecyclerView;
 
-    private ReciperAdapter mAdapter;
+    private MainRecipeAdapter mAdapter;
 
-    public RecipeCardFragment() {
+    public MainRecipeFragment() {
         // Required empty public constructor
     }
 
@@ -48,11 +46,11 @@ public class RecipeCardFragment extends Fragment implements ReciperAdapter.ItemC
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_recipe_card, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_recipe, container, false);
 
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recipe_recycler);
 
-        mAdapter = new ReciperAdapter(getActivity(), new ArrayList<Recipe>());
+        mAdapter = new MainRecipeAdapter(getActivity(), new ArrayList<Recipe>());
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);

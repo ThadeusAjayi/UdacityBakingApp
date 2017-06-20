@@ -6,7 +6,7 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recipe_recycler"
-        tools:context="com.shopspreeng.android.udacitybakingapp.ui.RecipeCardFragment"
+        tools:context="com.shopspreeng.android.udacitybakingapp.ui.MainRecipeFragment"
         android:layout_width="match_parent"
         android:background="@color/background"
         android:layout_height="match_parent">

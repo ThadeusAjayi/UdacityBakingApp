@@ -3,5 +3,5 @@
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:name="com.shopspreeng.android.udacitybakingapp.ui.RecipeCardFragment"/>
+            android:name="com.shopspreeng.android.udacitybakingapp.ui.MainRecipeFragment"/>
 

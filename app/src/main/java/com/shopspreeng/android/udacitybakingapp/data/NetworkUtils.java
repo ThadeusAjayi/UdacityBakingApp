@@ -91,10 +91,7 @@ public class NetworkUtils {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-
         return jsonResult;
-
     }
 
     public static ArrayList<Step> extractStepsFromJson(String recipeJson, String recipeName){
@@ -125,11 +122,7 @@ public class NetworkUtils {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-
         return jsonResult;
-
     }
-
 
 }

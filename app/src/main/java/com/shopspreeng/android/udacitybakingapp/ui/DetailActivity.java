@@ -1,6 +1,7 @@
 package com.shopspreeng.android.udacitybakingapp.ui;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -12,7 +13,9 @@ import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.util.ArrayList;
 
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity implements DetailActivityFragment.OnFragmentInteractionListener{
+
+    DetailAdapter detailAdapter;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -31,11 +34,19 @@ public class DetailActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Bundle b = intent.getExtras();
         String name = b.getString(getString(R.string.name));
-        ArrayList<Step> steps = b.getParcelableArrayList(getString(R.string.steps));
-
-        TextView detailText =  (TextView) findViewById(R.id.detail_text);
-        detailText.setText(steps.toString());
         getSupportActionBar().setTitle(name);
+
+        DetailActivityFragment detailActivityFragment = new DetailActivityFragment();
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.detail_container,detailActivityFragment)
+                .commit();
+
+
+
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
 
     }
 }

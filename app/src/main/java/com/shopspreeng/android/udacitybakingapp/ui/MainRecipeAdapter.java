@@ -17,13 +17,13 @@ import java.util.ArrayList;
  * Created by jayson surface on 14/06/2017.
  */
 
-public class ReciperAdapter extends RecyclerView.Adapter<ReciperAdapter.RecipeViewHolder> {
+public class MainRecipeAdapter extends RecyclerView.Adapter<MainRecipeAdapter.RecipeViewHolder> {
 
     LayoutInflater inflater;
     ItemClickListener mClickListener;
     ArrayList<Recipe> mRecipe;
 
-    public ReciperAdapter(Context context, ArrayList<Recipe> recipe){
+    public MainRecipeAdapter(Context context, ArrayList<Recipe> recipe){
         inflater = LayoutInflater.from(context);
         mRecipe = recipe;
     }
