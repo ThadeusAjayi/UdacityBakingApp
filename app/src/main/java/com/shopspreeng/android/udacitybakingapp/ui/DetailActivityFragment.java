@@ -3,18 +3,30 @@ package com.shopspreeng.android.udacitybakingapp.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.R;
+import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
+import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Step;
 
+import java.io.IOException;
 import java.util.ArrayList;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+import static com.shopspreeng.android.udacitybakingapp.R.string.steps;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -24,7 +36,8 @@ import java.util.ArrayList;
  * Use the {@link DetailActivityFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class DetailActivityFragment extends Fragment {
+public class DetailActivityFragment extends Fragment implements DetailAdapter.ItemClickListener,
+        IngredientFragment.OnFragmentInteractionListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -36,6 +49,8 @@ public class DetailActivityFragment extends Fragment {
 
     private RecyclerView mRecycler;
     DetailAdapter mDetailAdapter;
+
+    String recipeName;
 
 
     private OnFragmentInteractionListener mListener;
@@ -65,6 +80,9 @@ public class DetailActivityFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        recipeName = getActivity().getIntent().getExtras().get(getString(R.string.name)).toString();
+
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
@@ -80,7 +98,7 @@ public class DetailActivityFragment extends Fragment {
 
         mRecycler = (RecyclerView) view.findViewById(R.id.detail_recycler);
 
-        mDetailAdapter = new DetailAdapter(getContext(), new ArrayList<Step>());
+        mDetailAdapter = new DetailAdapter(getContext(), new ArrayList<Step>(), null);
 
         mRecycler.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false));
 
@@ -92,15 +110,11 @@ public class DetailActivityFragment extends Fragment {
 
         mDetailAdapter.setSteps(steps);
 
+        mDetailAdapter.setClickListener(this);
+
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -119,6 +133,49 @@ public class DetailActivityFragment extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public void onItemClick(View view, int position, final String recipe) {
+        mListener.onFragmentInteraction(view,position,recipe);
+        if(position == 0) {
+            new AsyncTask<Void, Void, ArrayList<Ingredient>>() {
+                @Override
+                protected ArrayList<Ingredient> doInBackground(Void... voids) {
+
+                    ArrayList<Ingredient> result = new ArrayList<>();
+                    try {
+                        result = NetworkUtils.extractIngredientsFromJson(run(NetworkUtils.buildBaseUrl().toString()), recipeName);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return result;
+                }
+
+                @Override
+                protected void onPostExecute(ArrayList<Ingredient> ingredient) {
+                    super.onPostExecute(ingredient);
+                    Log.v("LOg size", String.valueOf(ingredient.size()));
+                    mRecycler.setVisibility(View.GONE);
+
+                    IngredientFragment ingredientFragment = new IngredientFragment();
+                    ingredientFragment.setIngredients(ingredient);
+
+                    getChildFragmentManager().beginTransaction()
+                            .add(R.id.detail_container,ingredientFragment)
+                            .commit();
+
+                }
+            }.execute();
+        }else {
+            String description = mDetailAdapter.steps.get(position).getDesc();
+            String videoUrl = mDetailAdapter.steps.get(position).getVideoUrl();
+            Toast.makeText(getContext(), description + " " + videoUrl, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onFragmentInteraction(View view, int position, String recipe) {
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -131,7 +188,21 @@ public class DetailActivityFragment extends Fragment {
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(View view, int position, String recipe);
+    }
+
+    OkHttpClient connect = new OkHttpClient();
+
+    String run(String url) throws IOException {
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        Response response = connect.newCall(request).execute();
+
+        String result = response.body().string();
+
+        return result;
     }
 
 }

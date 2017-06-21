@@ -111,9 +111,8 @@ public class NetworkUtils {
                         String sDesc = stepsObject.getString("shortDescription");
                         String desc = stepsObject.getString("description");
                         String video = stepsObject.getString("videoURL");
-                        String thumb = stepsObject.getString("thumbnailURL");
 
-                        jsonResult.add(new Step(id,desc,video,thumb));
+                        jsonResult.add(new Step(id,sDesc,desc,video));
 
                     }
                 }

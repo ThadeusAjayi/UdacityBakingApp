@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 import com.shopspreeng.android.udacitybakingapp.R;
@@ -13,9 +14,9 @@ import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.util.ArrayList;
 
-public class DetailActivity extends AppCompatActivity implements DetailActivityFragment.OnFragmentInteractionListener{
-
-    DetailAdapter detailAdapter;
+//TODO if there are problem on click in fragments, change the fragmentinteractionlisteners name to handle clicks separately
+public class DetailActivity extends AppCompatActivity implements DetailActivityFragment.OnFragmentInteractionListener,
+        IngredientFragment.OnFragmentInteractionListener{
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -23,6 +24,16 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
             onBackPressed();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            super.onBackPressed();
+        }
+        else {
+            getSupportFragmentManager().popBackStack();
+        }
     }
 
     @Override
@@ -46,7 +57,7 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
+    public void onFragmentInteraction(View view, int position, String recipe) {
 
     }
 }

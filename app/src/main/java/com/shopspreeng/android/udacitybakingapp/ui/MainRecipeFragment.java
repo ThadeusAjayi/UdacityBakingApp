@@ -93,7 +93,8 @@ public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.It
             protected ArrayList<Step> doInBackground(Void... voids) {
                 ArrayList<Step> result = new ArrayList<>();
                 try {
-                    result = NetworkUtils.extractStepsFromJson(run(NetworkUtils.buildBaseUrl().toString()),recipe);
+                    result.add(0,null);
+                    result.addAll(NetworkUtils.extractStepsFromJson(run(NetworkUtils.buildBaseUrl().toString()),recipe));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -130,7 +131,7 @@ public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.It
     public interface OnRecipeClickListener {
         void onRecipeClick(View view, int position, String recipe);
     }
-
+//TODO set error text on no data return and avoid crash, check internet availability
     private class RecipeAsync extends AsyncTask<Void, Void, ArrayList<Recipe>> {
 
         @Override

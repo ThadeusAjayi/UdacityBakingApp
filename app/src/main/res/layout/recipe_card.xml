@@ -6,7 +6,7 @@
         xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/card_view"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="150dp"
         android:layout_gravity="center"
         card_view:cardBackgroundColor="@color/cardBack"
         card_view:cardCornerRadius="12dp"
