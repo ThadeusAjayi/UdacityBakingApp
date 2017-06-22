@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -152,27 +153,29 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
                 @Override
                 protected void onPostExecute(ArrayList<Ingredient> ingredient) {
                     super.onPostExecute(ingredient);
-                    mRecycler.setVisibility(View.GONE);
+                    //mRecycler.setVisibility(View.GONE);
 
                     IngredientFragment ingredientFragment = new IngredientFragment();
                     ingredientFragment.setIngredients(ingredient);
 
                     getChildFragmentManager().beginTransaction()
-                            .add(R.id.detail_container,ingredientFragment)
+                            .addToBackStack(null)
+                            .replace(R.id.detail_container, ingredientFragment)
                             .commit();
 
                 }
             }.execute();
         }else {
-            mRecycler.setVisibility(View.GONE);
+            //mRecycler.setVisibility(View.GONE);
 
             MediaPlayerFragment mediaFragment = new MediaPlayerFragment();
-            //mediaFragment.setDescView(description);
             mediaFragment.setPosition(position);
             mediaFragment.setText(mDetailAdapter.steps.get(position).getDesc());
             mediaFragment.setSteps(mDetailAdapter.steps);
+            mediaFragment.setVideoUrl(mDetailAdapter.steps.get(position).getVideoUrl());
 
             getChildFragmentManager().beginTransaction()
+                    .addToBackStack(null)
                     .replace(R.id.detail_container, mediaFragment)
                     .commit();
 

@@ -2,8 +2,11 @@ package com.shopspreeng.android.udacitybakingapp.ui;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -28,12 +31,17 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
     @Override
     public void onBackPressed() {
-        if(getSupportFragmentManager().getBackStackEntryCount() == 0) {
-            super.onBackPressed();
+        FragmentManager fm = getSupportFragmentManager();
+        for (Fragment frag : fm.getFragments()) {
+            if (frag.isVisible()) {
+                FragmentManager childFm = frag.getChildFragmentManager();
+                if (childFm.getBackStackEntryCount() > 0) {
+                    childFm.popBackStack();
+                    return;
+                }
+            }
         }
-        else {
-            getSupportFragmentManager().popBackStack();
-        }
+        super.onBackPressed();
     }
 
     @Override

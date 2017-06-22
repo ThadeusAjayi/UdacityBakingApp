@@ -1,9 +1,12 @@
 package com.shopspreeng.android.udacitybakingapp.ui;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +15,24 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.LoadControl;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
+import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
 import com.shopspreeng.android.udacitybakingapp.R;
 import com.shopspreeng.android.udacitybakingapp.data.Step;
 
@@ -28,7 +48,7 @@ import static android.media.CamcorderProfile.get;
  * Use the {@link MediaPlayerFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MediaPlayerFragment extends Fragment {
+public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -38,9 +58,13 @@ public class MediaPlayerFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    private static final String TAG = DetailActivity.class.getSimpleName();
+
     private OnMediaPlayerFragmentInteraction mListener;
 
     SimpleExoPlayerView mPlayerView;
+
+    SimpleExoPlayer mExoPlayer;
 
     Button prev, next;
 
@@ -50,9 +74,15 @@ public class MediaPlayerFragment extends Fragment {
 
     int position;
 
+    private static long playPosition = 0;
+
     private String videoUrl;
 
     private String tvDescription;
+
+    private static MediaSessionCompat mediaSession;
+
+    private PlaybackStateCompat.Builder stateBuilder;
 
     public MediaPlayerFragment() {
         // Required empty public constructor
@@ -97,6 +127,10 @@ public class MediaPlayerFragment extends Fragment {
 
         descView.setText(tvDescription);
 
+        initializeMediaSession();
+
+        initializePlayer(Uri.parse(videoUrl));
+
         prev = (Button) rootView.findViewById(R.id.prev);
 
         prev.setOnClickListener(new View.OnClickListener() {
@@ -107,6 +141,7 @@ public class MediaPlayerFragment extends Fragment {
                     Log.v("position to previous", " "+position);
                     String prevDesc = description.get(position).getDesc().toString();
                     descView.setText(prevDesc);
+                    initializePlayer(Uri.parse(description.get(position).getVideoUrl()));
                 }else {
                     Toast.makeText(getContext(), "Click next", Toast.LENGTH_SHORT).show();
                 }
@@ -124,23 +159,38 @@ public class MediaPlayerFragment extends Fragment {
                     Log.v("position to previous", " "+position);
                     String nextDesc = description.get(position).getDesc();
                     descView.setText(nextDesc);
+                    initializePlayer(Uri.parse(description.get(position).getVideoUrl()));
                 }else {
                     Toast.makeText(getContext(), "Click prev", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE /*&& !isTablet*/) {
+            hideSystemUI();
+            /*if(savedInstanceState != null){
+                continuePlayPosition(playPosition,true);
+            }*/
+            mPlayerView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
+            descView.setVisibility(View.GONE);
+            prev.setVisibility(View.GONE);
+            next.setVisibility(View.GONE);
+        }
+
         return rootView;
 
     }
 
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onMediaPlayerInteraction(uri);
-        }
+    private void hideSystemUI() {
+        getActivity().getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
+
 
     @Override
     public void onAttach(Context context) {
@@ -157,6 +207,50 @@ public class MediaPlayerFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onTimelineChanged(Timeline timeline, Object manifest) {
+
+    }
+
+    @Override
+    public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+
+    }
+
+    @Override
+    public void onLoadingChanged(boolean isLoading) {
+
+    }
+
+    @Override
+    public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+        if (playbackState == PlaybackStateCompat.STATE_PLAYING) {
+            playPosition = mExoPlayer.getCurrentPosition();
+        }
+        mediaSession.setPlaybackState(stateBuilder.build());
+    }
+
+    @Override
+    public void onPlayerError(ExoPlaybackException error) {
+
+    }
+
+    @Override
+    public void onPositionDiscontinuity() {
+
+    }
+
+    @Override
+    public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+
+    }
+
+    private void continuePlayPosition(long position, boolean playWhenReady) {
+        playPosition = position;
+        mExoPlayer.seekTo(position);
+        mExoPlayer.setPlayWhenReady(playWhenReady);
     }
 
     /**
@@ -180,7 +274,6 @@ public class MediaPlayerFragment extends Fragment {
 
     public void setPosition(int pos){
         position = pos;
-        Log.v("Position", " "+position);
     }
 
     public void setText(String desc){
@@ -189,5 +282,80 @@ public class MediaPlayerFragment extends Fragment {
 
     public void setVideoUrl(String url){
         videoUrl = url;
+    }
+
+    private void initializePlayer(Uri mediaUri) {
+        if (mExoPlayer == null) {
+            TrackSelector trackSelector = new DefaultTrackSelector();
+            LoadControl loadControl = new DefaultLoadControl();
+            mExoPlayer = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector, loadControl);
+            mPlayerView.setPlayer(mExoPlayer);
+            mExoPlayer.addListener(this);
+            String userAgent = Util.getUserAgent(getContext(), "MediaPlayerFragment");
+            MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
+                    getContext(), userAgent), new DefaultExtractorsFactory(), null, null);
+            mExoPlayer.prepare(mediaSource);
+            mExoPlayer.setPlayWhenReady(true);
+        }
+    }
+
+
+    private void releasePlayer() {
+        mExoPlayer.stop();
+        mExoPlayer.release();
+        mExoPlayer = null;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        releasePlayer();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        //releasePlayer();
+    }
+
+    private void initializeMediaSession() {
+        mediaSession = new MediaSessionCompat(getContext(), TAG);
+        mediaSession.setFlags(
+                MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+                        MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setMediaButtonReceiver(null);
+        stateBuilder = new PlaybackStateCompat.Builder()
+                .setActions(
+                        PlaybackStateCompat.ACTION_PLAY |
+                                PlaybackStateCompat.ACTION_PAUSE |
+                                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                                PlaybackStateCompat.ACTION_PLAY_PAUSE);
+        mediaSession.setPlaybackState(stateBuilder.build());
+        mediaSession.setCallback(new MySessionCallback());
+        mediaSession.setActive(true);
+    }
+
+    private class MySessionCallback extends MediaSessionCompat.Callback {
+        @Override
+        public void onPlay() {
+            mExoPlayer.setPlayWhenReady(true);
+        }
+
+        @Override
+        public void onPause() {
+            mExoPlayer.setPlayWhenReady(false);
+        }
+
+        @Override
+        public void onSkipToPrevious() {
+            continuePlayPosition(0, false);
+        }
+
+        @Override
+        public void onSkipToNext() {
+            //super.onSkipToNext();
+        }
+
+
     }
 }
