@@ -15,13 +15,15 @@ import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.util.ArrayList;
 
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+
 /**
  * Created by jayson surface on 19/06/2017.
  */
 
 public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailViewHolder> {
 
-    public ArrayList<Step> steps = new ArrayList<>();
+    ArrayList<Step> steps = new ArrayList<>();
     ArrayList<Ingredient> ingredients = new ArrayList<>();
     LayoutInflater inflater;
     ItemClickListener mClickListener;
@@ -53,10 +55,11 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
     public void onBindViewHolder(DetailViewHolder holder, int position) {
 
         ViewGroup.LayoutParams params = holder.cardView.getLayoutParams();
-        params.height = 200;
-        holder.cardView.setLayoutParams(params);
+
 
         if(this.steps != null) {
+            params.height = 200;
+            holder.cardView.setLayoutParams(params);
             Step step = steps.get(position);
             if (step == null) {
                 holder.detailText.setText("Ingredients");
@@ -64,8 +67,11 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
                 holder.detailText.setText(step.getShortDesc().toString());
             }
         }else {
+            params.height = WRAP_CONTENT;
+            holder.cardView.setLayoutParams(params);
             Ingredient ingredient = ingredients.get(position);
             holder.detailText.setText(ingredient.getmIngredient().toString());
+            holder.detailText.append("\n" + ingredient.getmQty() + " " +ingredient.getmMeasure());
         }
 
     }

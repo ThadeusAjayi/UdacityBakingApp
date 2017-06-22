@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 //TODO if there are problem on click in fragments, change the fragmentinteractionlisteners name to handle clicks separately
 public class DetailActivity extends AppCompatActivity implements DetailActivityFragment.OnFragmentInteractionListener,
-        IngredientFragment.OnFragmentInteractionListener{
+        IngredientFragment.OnFragmentInteractionListener, MediaPlayerFragment.OnMediaPlayerFragmentInteraction{
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -60,4 +60,10 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
     public void onFragmentInteraction(View view, int position, String recipe) {
 
     }
+
+    @Override
+    public void onMediaPlayerInteraction(Uri uri) {
+
+    }
+
 }

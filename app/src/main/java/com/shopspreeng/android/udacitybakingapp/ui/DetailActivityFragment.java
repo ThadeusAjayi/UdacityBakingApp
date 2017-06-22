@@ -36,8 +36,7 @@ import static com.shopspreeng.android.udacitybakingapp.R.string.steps;
  * Use the {@link DetailActivityFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class DetailActivityFragment extends Fragment implements DetailAdapter.ItemClickListener,
-        IngredientFragment.OnFragmentInteractionListener{
+public class DetailActivityFragment extends Fragment implements DetailAdapter.ItemClickListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -153,7 +152,6 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
                 @Override
                 protected void onPostExecute(ArrayList<Ingredient> ingredient) {
                     super.onPostExecute(ingredient);
-                    Log.v("LOg size", String.valueOf(ingredient.size()));
                     mRecycler.setVisibility(View.GONE);
 
                     IngredientFragment ingredientFragment = new IngredientFragment();
@@ -166,15 +164,22 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
                 }
             }.execute();
         }else {
-            String description = mDetailAdapter.steps.get(position).getDesc();
-            String videoUrl = mDetailAdapter.steps.get(position).getVideoUrl();
-            Toast.makeText(getContext(), description + " " + videoUrl, Toast.LENGTH_SHORT).show();
+            mRecycler.setVisibility(View.GONE);
+
+            MediaPlayerFragment mediaFragment = new MediaPlayerFragment();
+            //mediaFragment.setDescView(description);
+            mediaFragment.setPosition(position);
+            mediaFragment.setText(mDetailAdapter.steps.get(position).getDesc());
+            mediaFragment.setSteps(mDetailAdapter.steps);
+
+            getChildFragmentManager().beginTransaction()
+                    .replace(R.id.detail_container, mediaFragment)
+                    .commit();
+
         }
     }
 
-    @Override
-    public void onFragmentInteraction(View view, int position, String recipe) {
-    }
+
 
     /**
      * This interface must be implemented by activities that contain this
