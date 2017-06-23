@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.R;
@@ -23,11 +24,11 @@ import java.util.ArrayList;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link IngredientFragment.OnFragmentInteractionListener} interface
+ * {@link IngredientFragment.OnIngredientInteractionListener} interface
  * to handle interaction events.
  * create an instance of this fragment.
  */
-public class IngredientFragment extends Fragment implements DetailAdapter.ItemClickListener{
+public class IngredientFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -37,13 +38,13 @@ public class IngredientFragment extends Fragment implements DetailAdapter.ItemCl
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
+    private OnIngredientInteractionListener mListener;
 
-    private DetailAdapter mDetailAdapter;
-
-    private RecyclerView mRecycler;
+    private TextView ingredientTv;
 
     private ArrayList<Ingredient> ingredients;
+
+    ArrayList<Ingredient> allIngred;
 
 
     public IngredientFragment() {
@@ -67,26 +68,38 @@ public class IngredientFragment extends Fragment implements DetailAdapter.ItemCl
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_ingredient, container, false);
 
-        mRecycler = (RecyclerView) rootView.findViewById(R.id.ingredient_recycler);
+        ingredientTv = (TextView) rootView.findViewById(R.id.ingredient_tv);
 
-        mRecycler.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false));
+        if(savedInstanceState != null){
+            ArrayList<Ingredient> savedIngred = savedInstanceState.
+                    getParcelableArrayList(getString(R.string.ingredients));
+            setIngredients(savedIngred);
+        }
 
-        mDetailAdapter = new DetailAdapter(getContext(),null,new ArrayList<Ingredient>());
+        allIngred = getIngredients();
 
-        mRecycler.setAdapter(mDetailAdapter);
+        mListener.onIngredientInteraction(allIngred);
 
-        mDetailAdapter.setIngredients(getIngredients());
-
-        mDetailAdapter.setClickListener(this);
+        int count = 1;
+        for(Ingredient val : allIngred){
+            ingredientTv.append(String.valueOf(count) + ":\t" +val.describeContents() + "\n \t" + val.getmQty() + " " + val.getmMeasure());
+            count++;
+        }
 
         return rootView;
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(getString(R.string.ingredients),allIngred);
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnIngredientInteractionListener) {
+            mListener = (OnIngredientInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -100,12 +113,6 @@ public class IngredientFragment extends Fragment implements DetailAdapter.ItemCl
         mListener = null;
     }
 
-    @Override
-    public void onItemClick(View view, int position, String recipe) {
-        Toast.makeText(getContext(), "Thanks for clicking", Toast.LENGTH_SHORT).show();
-    }
-
-
 
     /**
      * This interface must be implemented by activities that contain this
@@ -117,9 +124,9 @@ public class IngredientFragment extends Fragment implements DetailAdapter.ItemCl
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
+    public interface OnIngredientInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(View view, int position, String recipe);
+        void onIngredientInteraction(ArrayList<Ingredient> ingredients);
     }
 
     public ArrayList<Ingredient> getIngredients(){

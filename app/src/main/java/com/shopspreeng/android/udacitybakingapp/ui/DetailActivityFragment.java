@@ -2,18 +2,15 @@ package com.shopspreeng.android.udacitybakingapp.ui;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.R;
 import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
@@ -27,12 +24,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static com.shopspreeng.android.udacitybakingapp.R.string.steps;
-
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link DetailActivityFragment.OnFragmentInteractionListener} interface
+ * {@link DetailActivityFragment.OnStepInteractionListener} interface
  * to handle interaction events.
  * Use the {@link DetailActivityFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -48,12 +43,14 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
     private String mParam2;
 
     private RecyclerView mRecycler;
+
     DetailAdapter mDetailAdapter;
 
     String recipeName;
 
+    ArrayList<Step> stepFromMain;
 
-    private OnFragmentInteractionListener mListener;
+    private OnStepInteractionListener mListener;
 
     public DetailActivityFragment() {
         // Required empty public constructor
@@ -81,8 +78,6 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        recipeName = getActivity().getIntent().getExtras().get(getString(R.string.name)).toString();
-
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
@@ -98,29 +93,36 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
 
         mRecycler = (RecyclerView) view.findViewById(R.id.detail_recycler);
 
-        mDetailAdapter = new DetailAdapter(getContext(), new ArrayList<Step>(), null);
+        mDetailAdapter = new DetailAdapter(getContext(), new ArrayList<Step>());
 
         mRecycler.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false));
 
         mRecycler.setAdapter(mDetailAdapter);
 
-        Intent intent = getActivity().getIntent();
-        Bundle b = intent.getExtras();
-        ArrayList<Step> steps = b.getParcelableArrayList(getString(R.string.steps));
-
-        mDetailAdapter.setSteps(steps);
+        if(savedInstanceState != null){
+            ArrayList<Step> savedSteps = savedInstanceState.getParcelableArrayList(getString(R.string.steps));
+            setSteps(savedSteps,null);
+            mDetailAdapter.setSteps(getSteps());
+        }else {
+            mDetailAdapter.setSteps(getSteps());
+        }
 
         mDetailAdapter.setClickListener(this);
 
         return view;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(getString(R.string.steps),stepFromMain);
+    }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnStepInteractionListener) {
+            mListener = (OnStepInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -135,51 +137,8 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
 
     @Override
     public void onItemClick(View view, int position, final String recipe) {
-        mListener.onFragmentInteraction(view,position,recipe);
-        if(position == 0) {
-            new AsyncTask<Void, Void, ArrayList<Ingredient>>() {
-                @Override
-                protected ArrayList<Ingredient> doInBackground(Void... voids) {
+        mListener.onStepInteraction(view,position,recipe);
 
-                    ArrayList<Ingredient> result = new ArrayList<>();
-                    try {
-                        result = NetworkUtils.extractIngredientsFromJson(run(NetworkUtils.buildBaseUrl().toString()), recipeName);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return result;
-                }
-
-                @Override
-                protected void onPostExecute(ArrayList<Ingredient> ingredient) {
-                    super.onPostExecute(ingredient);
-                    //mRecycler.setVisibility(View.GONE);
-
-                    IngredientFragment ingredientFragment = new IngredientFragment();
-                    ingredientFragment.setIngredients(ingredient);
-
-                    getChildFragmentManager().beginTransaction()
-                            .addToBackStack(null)
-                            .replace(R.id.detail_container, ingredientFragment)
-                            .commit();
-
-                }
-            }.execute();
-        }else {
-            //mRecycler.setVisibility(View.GONE);
-
-            MediaPlayerFragment mediaFragment = new MediaPlayerFragment();
-            mediaFragment.setPosition(position);
-            mediaFragment.setText(mDetailAdapter.steps.get(position).getDesc());
-            mediaFragment.setSteps(mDetailAdapter.steps);
-            mediaFragment.setVideoUrl(mDetailAdapter.steps.get(position).getVideoUrl());
-
-            getChildFragmentManager().beginTransaction()
-                    .addToBackStack(null)
-                    .replace(R.id.detail_container, mediaFragment)
-                    .commit();
-
-        }
     }
 
 
@@ -194,23 +153,24 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
+    public interface OnStepInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(View view, int position, String recipe);
+        void onStepInteraction(View view, int position, String recipe);
     }
 
-    OkHttpClient connect = new OkHttpClient();
 
-    String run(String url) throws IOException {
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
+    public void setSteps(@Nullable ArrayList<Step> fromMain, String recipe){
+        if(fromMain == null){
+            stepFromMain = getActivity().getIntent().getExtras().getParcelableArrayList(getString(R.string.steps));
+            recipeName = getActivity().getIntent().getExtras().get(getString(R.string.name)).toString();
+        }else {
+            stepFromMain = fromMain;
+            recipeName = recipe;
+        }
+    }
 
-        Response response = connect.newCall(request).execute();
-
-        String result = response.body().string();
-
-        return result;
+    private ArrayList<Step> getSteps(){
+        return stepFromMain;
     }
 
 }

@@ -7,9 +7,27 @@ import android.os.Parcelable;
  * Created by jayson surface on 13/06/2017.
  */
 
-public class Recipe {
+public class Recipe implements Parcelable{
 
     public String mId, mName, mServings;
+
+    protected Recipe(Parcel in) {
+        mId = in.readString();
+        mName = in.readString();
+        mServings = in.readString();
+    }
+
+    public static final Creator<Recipe> CREATOR = new Creator<Recipe>() {
+        @Override
+        public Recipe createFromParcel(Parcel in) {
+            return new Recipe(in);
+        }
+
+        @Override
+        public Recipe[] newArray(int size) {
+            return new Recipe[size];
+        }
+    };
 
     @Override
     public String toString() {
@@ -54,6 +72,15 @@ public class Recipe {
     }
 
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
-
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(mId);
+        parcel.writeString(mName);
+        parcel.writeString(mServings);
+    }
 }

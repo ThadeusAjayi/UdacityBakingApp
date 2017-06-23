@@ -24,16 +24,14 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailViewHolder> {
 
     ArrayList<Step> steps = new ArrayList<>();
-    ArrayList<Ingredient> ingredients = new ArrayList<>();
     LayoutInflater inflater;
     ItemClickListener mClickListener;
 
     public DetailAdapter(){}
 
-    public DetailAdapter(Context context,@Nullable ArrayList<Step> steps, @Nullable ArrayList<Ingredient> ingredients){
+    public DetailAdapter(Context context,@Nullable ArrayList<Step> steps){
         inflater = LayoutInflater.from(context);
         this.steps = steps;
-        this.ingredients = ingredients;
     }
 
     public void setSteps(ArrayList<Step> steps){
@@ -69,9 +67,7 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
         }else {
             params.height = WRAP_CONTENT;
             holder.cardView.setLayoutParams(params);
-            Ingredient ingredient = ingredients.get(position);
-            holder.detailText.setText(ingredient.getmIngredient().toString());
-            holder.detailText.append("\n" + ingredient.getmQty() + " " +ingredient.getmMeasure());
+            holder.detailText.setText(R.string.select_recipe);
         }
 
     }
@@ -80,15 +76,10 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
     public int getItemCount() {
         if(steps != null) {
             return steps.size();
-        }else {
-            return ingredients.size();
         }
+        return 0;
     }
 
-    public void setIngredients(ArrayList<Ingredient> ingredients) {
-        this.ingredients = ingredients;
-        notifyDataSetChanged();
-    }
 
     public class DetailViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 

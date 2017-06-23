@@ -4,22 +4,41 @@
     android:layout_width="match_parent">
 
     <fragment
-        android:id="@+id/recipe_list"
         xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/recipe_list"
         android:layout_width="0dp"
         android:layout_weight="4"
         android:layout_height="match_parent"
         android:name="com.shopspreeng.android.udacitybakingapp.ui.MainRecipeFragment"/>
 
     <View
-        android:layout_width="5dp"
-        android:layout_height="match_parent"
-        android:background="@color/highlights"/>
+        android:layout_width="2dp"
+        android:layout_height="match_parent"/>
 
     <FrameLayout
+        android:id="@+id/step_list"
         android:layout_width="0dp"
         android:layout_weight="6"
         android:layout_height="match_parent"/>
 
+    <!--<LinearLayout
+        android:orientation="vertical"
+        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_weight="6"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+        <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/detail_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/background" />
+
+        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/detail_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
+-->
 
 </LinearLayout>

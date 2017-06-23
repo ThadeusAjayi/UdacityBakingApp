@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v7.widget.GridLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -116,6 +117,15 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(getString(R.string.playPosition),playPosition);
+        outState.putString(getString(R.string.videoUrl),videoUrl);
+        outState.putInt(getString(R.string.description_position),position);
+        outState.putString(getString(R.string.description),tvDescription);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -124,6 +134,13 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
         mPlayerView = (SimpleExoPlayerView) rootView.findViewById(R.id.player_view);
 
         descView = (TextView) rootView.findViewById(R.id.step_description);
+
+        if(savedInstanceState != null){
+            tvDescription = savedInstanceState.getString(getString(R.string.description));
+            videoUrl = savedInstanceState.getString(getString(R.string.videoUrl));
+            playPosition = savedInstanceState.getLong(getString(R.string.playPosition));
+            position = savedInstanceState.getInt(getString(R.string.description_position));
+        }
 
         descView.setText(tvDescription);
 
@@ -166,16 +183,18 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
             }
         });
 
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE /*&& !isTablet*/) {
-            hideSystemUI();
+            if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+                hideSystemUI();
             /*if(savedInstanceState != null){
                 continuePlayPosition(playPosition,true);
             }*/
-            mPlayerView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
-            descView.setVisibility(View.GONE);
-            prev.setVisibility(View.GONE);
-            next.setVisibility(View.GONE);
-        }
+                mPlayerView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
+                descView.setVisibility(View.GONE);
+                prev.setVisibility(View.GONE);
+                next.setVisibility(View.GONE);
+            }
+
+
 
         return rootView;
 
@@ -309,13 +328,14 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
     @Override
     public void onPause() {
         super.onPause();
-        releasePlayer();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        //releasePlayer();
+        if(mExoPlayer != null) {
+            releasePlayer();
+        }
     }
 
     private void initializeMediaSession() {

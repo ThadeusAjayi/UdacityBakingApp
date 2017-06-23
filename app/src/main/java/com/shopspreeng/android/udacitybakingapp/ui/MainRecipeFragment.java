@@ -37,6 +37,8 @@ public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.It
 
     private MainRecipeAdapter mAdapter;
 
+    ArrayList<Recipe> mRecipeResult;
+
     public MainRecipeFragment() {
         // Required empty public constructor
     }
@@ -61,9 +63,22 @@ public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.It
 
         mAdapter.setClickListener(this);
 
-        new RecipeAsync().execute();
+        if(savedInstanceState != null){
+            ArrayList<Recipe> savedRecipe = savedInstanceState.getParcelableArrayList(getString(R.string.recipe_list));
+            mRecipeResult = savedRecipe;
+            mAdapter.setRecipe(mRecipeResult);
+
+        }else {
+            new RecipeAsync().execute();
+        }
 
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(getString(R.string.recipe_list), mRecipeResult);
     }
 
     @Override
@@ -88,31 +103,6 @@ public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.It
 
         mListener.onRecipeClick(view, position,recipe);
 
-        new AsyncTask<Void, Void, ArrayList<Step>>() {
-            @Override
-            protected ArrayList<Step> doInBackground(Void... voids) {
-                ArrayList<Step> result = new ArrayList<>();
-                try {
-                    result.add(0,null);
-                    result.addAll(NetworkUtils.extractStepsFromJson(run(NetworkUtils.buildBaseUrl().toString()),recipe));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return result;
-            }
-
-            @Override
-            protected void onPostExecute(ArrayList<Step> step) {
-                super.onPostExecute(step);
-                Toast.makeText(getContext(), "fragment click", Toast.LENGTH_SHORT).show();
-                Intent detailIntent = new Intent(getActivity(),DetailActivity.class);
-                Bundle b = new Bundle();
-                b.putString(getString(R.string.name),recipe);
-                b.putParcelableArrayList(getString(R.string.steps),step);
-                detailIntent.putExtras(b);
-                startActivity(detailIntent);
-            }
-        }.execute();
 
     }
 
@@ -149,6 +139,7 @@ public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.It
         @Override
         protected void onPostExecute(ArrayList<Recipe> recipeResult) {
             mAdapter.setRecipe(recipeResult);
+            mRecipeResult = recipeResult;
         }
     }
 

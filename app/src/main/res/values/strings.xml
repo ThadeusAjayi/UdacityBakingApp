@@ -11,4 +11,9 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="prev"><![CDATA[<< prev]]></string>
     <string name="next"><![CDATA[next >>]]></string>
+    <string name="select_recipe">Please select recipe</string>
+    <string name="playPosition">pPosition</string>
+    <string name="videoUrl">videoUrl</string>
+    <string name="description_position">dPosition</string>
+    <string name="recipe_list">recipe</string>
 </resources>
