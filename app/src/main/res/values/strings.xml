@@ -16,4 +16,6 @@
     <string name="videoUrl">videoUrl</string>
     <string name="description_position">dPosition</string>
     <string name="recipe_list">recipe</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 </resources>
