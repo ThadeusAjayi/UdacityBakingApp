@@ -2,19 +2,16 @@ package com.shopspreeng.android.udacitybakingapp.ui;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.R;
 import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
-import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.io.IOException;
@@ -24,36 +21,23 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class DetailActivity extends AppCompatActivity implements DetailActivityFragment.OnStepInteractionListener,
-        IngredientFragment.OnIngredientInteractionListener, MediaPlayerFragment.OnMediaPlayerFragmentInteraction{
+import static com.shopspreeng.android.udacitybakingapp.R.bool.isTablet;
 
-    private boolean isTablet;
+public class DetailActivity extends AppCompatActivity implements DetailActivityFragment.OnStepInteractionListener,
+        MediaPlayerFragment.OnMediaPlayerFragmentInteraction {
 
     String recipeName;
 
-    ArrayList<Step> stepToFrag;
+    ArrayList<Step> steps;
+
+    boolean tabletSize;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == android.R.id.home) {
+        if(item.getItemId() == android.R.id.home){
             onBackPressed();
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBackPressed() {
-        FragmentManager fm = getSupportFragmentManager();
-        for (Fragment frag : fm.getFragments()) {
-            if (frag.isVisible()) {
-                FragmentManager childFm = frag.getChildFragmentManager();
-                if (childFm.getBackStackEntryCount() > 0) {
-                    childFm.popBackStack();
-                    return;
-                }
-            }
-        }
-        super.onBackPressed();
     }
 
     @Override
@@ -62,92 +46,92 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
         setContentView(R.layout.activity_detail);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        if(findViewById(R.id.detail_container) != null){
+        tabletSize = getResources().getBoolean(isTablet);
 
-            isTablet = true;
+        Intent intent = getIntent();
 
-            Intent intent = getIntent();
-            Bundle b = intent.getExtras();
+        if(savedInstanceState == null) {
 
-            if(savedInstanceState == null) {
+            recipeName = intent.getStringExtra(getString(R.string.name));
 
-                recipeName = b.getString(getString(R.string.name));
-
-                stepToFrag = b.getParcelableArrayList(getString(R.string.steps));
-
-            }else {
-                ArrayList<Step> savedIngred = savedInstanceState.getParcelableArrayList(getString(R.string.ingredients));
-                stepToFrag = savedIngred;
-            }
-
-            getSupportActionBar().setTitle(recipeName);
-
-            DetailActivityFragment detailActivityFragment = new DetailActivityFragment();
-            detailActivityFragment.setSteps(stepToFrag,null);
-
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.detail_container,detailActivityFragment)
-                    .commit();
+            steps = intent.getParcelableArrayListExtra(getString(R.string.steps));
 
         }else {
-            isTablet = false;
+            recipeName = savedInstanceState.getString(getString(R.string.name));
+
+            steps = savedInstanceState.getParcelableArrayList(getString(R.string.steps));
         }
 
+        getSupportActionBar().setTitle(recipeName);
+
+        DetailActivityFragment detailActivityFragment = new DetailActivityFragment();
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        if(tabletSize) {
+
+            MediaPlayerFragment mediaPlayerFragment = new MediaPlayerFragment();
+            mediaPlayerFragment.setPosition(1);
+            mediaPlayerFragment.setText(steps.get(1).getDesc());
+            mediaPlayerFragment.setSteps(steps);
+            mediaPlayerFragment.setVideoUrl(steps.get(1).getVideoUrl());
+
+            fragmentManager.beginTransaction()
+                    .add(R.id.detail_container,detailActivityFragment)
+                    .replace(R.id.sub_container, mediaPlayerFragment)
+                    .commit();
+        }else {
+
+            detailActivityFragment.setStepsList(steps);
+            ArrayList<Ingredient> toDetail = getIntent().getParcelableArrayListExtra(getString(R.string.ingredients));
+            detailActivityFragment.setIngredientList(toDetail);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.detail_container, detailActivityFragment)
+                    .commit();
+
+        }
 
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(getString(R.string.ingredients),stepToFrag);
+        outState.putParcelableArrayList(getString(R.string.steps), steps);
         outState.putString(getString(R.string.name),recipeName);
     }
 
     @Override
     public void onStepInteraction(View view, int position, String recipe) {
 
-        if(isTablet) {
+        if(tabletSize) {
 
             if (position == 0) {
-                new AsyncTask<Void, Void, ArrayList<Ingredient>>() {
-                    @Override
-                    protected ArrayList<Ingredient> doInBackground(Void... voids) {
 
-                        ArrayList<Ingredient> result = new ArrayList<>();
-                        try {
-                            result = NetworkUtils.extractIngredientsFromJson(run(NetworkUtils.buildBaseUrl().toString()), recipeName);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return result;
-                    }
-
-                    @Override
-                    protected void onPostExecute(ArrayList<Ingredient> ingredient) {
-                        super.onPostExecute(ingredient);
-
-                        IngredientFragment ingredientFragment = new IngredientFragment();
-                        ingredientFragment.setIngredients(ingredient);
-
-                        getSupportFragmentManager().beginTransaction()
-                                .addToBackStack(null)
-                                .replace(R.id.detail_container, ingredientFragment)
-                                .commit();
-
-                    }
-                }.execute();
             } else {
 
-                MediaPlayerFragment mediaFragment = new MediaPlayerFragment();
-                mediaFragment.setPosition(position);
-                mediaFragment.setText(stepToFrag.get(position).getDesc());
-                mediaFragment.setSteps(stepToFrag);
-                mediaFragment.setVideoUrl(stepToFrag.get(position).getVideoUrl());
+                MediaPlayerFragment mediaPlayerFragment = new MediaPlayerFragment();
+                mediaPlayerFragment.setPosition(position);
+                mediaPlayerFragment.setText(steps.get(position).getDesc());
+                mediaPlayerFragment.setSteps(steps);
+                mediaPlayerFragment.setVideoUrl(steps.get(position).getVideoUrl());
 
                 getSupportFragmentManager().beginTransaction()
-                        .addToBackStack(null)
-                        .replace(R.id.detail_container, mediaFragment)
+                        .replace(R.id.sub_container, mediaPlayerFragment)
                         .commit();
+
+            }
+        }else {
+
+            if (position == 0) {
+
+            } else {
+
+                Intent intent = new Intent(this,PhoneMediaPlayerActivity.class);
+                intent.putParcelableArrayListExtra(getString(R.string.steps),steps);
+                intent.putExtra(getString(R.string.name),recipe);
+                intent.putExtra(getString(R.string.position),position);
+                startActivity(intent);
 
             }
         }
@@ -158,22 +142,4 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
     }
 
-    @Override
-    public void onIngredientInteraction(ArrayList<Ingredient> ingredients) {
-
-    }
-
-    OkHttpClient connect = new OkHttpClient();
-
-    String run(String url) throws IOException {
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
-
-        Response response = connect.newCall(request).execute();
-
-        String result = response.body().string();
-
-        return result;
-    }
 }

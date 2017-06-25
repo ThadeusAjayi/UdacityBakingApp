@@ -1,18 +1,28 @@
 package com.shopspreeng.android.udacitybakingapp.ui;
 
+import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.design.widget.BaseTransientBottomBar;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.shopspreeng.android.udacitybakingapp.BakingDatabaseUpdateService;
 import com.shopspreeng.android.udacitybakingapp.R;
 import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
 import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
@@ -26,26 +36,29 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static com.shopspreeng.android.udacitybakingapp.R.string.steps;
-import static java.security.AccessController.getContext;
+import static com.shopspreeng.android.udacitybakingapp.R.bool.isTablet;
+import static com.shopspreeng.android.udacitybakingapp.R.string.ingredients;
 
-public class MainActivity extends AppCompatActivity implements
-        MainRecipeFragment.OnRecipeClickListener, DetailActivityFragment.OnStepInteractionListener,
-        IngredientFragment.OnIngredientInteractionListener, MediaPlayerFragment.OnMediaPlayerFragmentInteraction {
 
-    public boolean isTablet;
+public class MainActivity extends AppCompatActivity implements MainRecipeFragment.OnRecipeClickListener,
+        MainRecipeAdapter.ItemClickListener {
 
-    MainRecipeAdapter mMainAdapter;
+    private RecyclerView mRecyclerView;
 
-    DetailAdapter mDetailAdapter;
+    private MainRecipeAdapter mAdapter;
 
-    ArrayList<Step> stepList;
+    ArrayList<Recipe> mRecipeResult = new ArrayList<>();
 
-    RecyclerView mRecycler;
+    boolean tabletSize, isLoading;
 
-    RecyclerView mDetailRecycler;
+    TextView loadingTv, errorView;
 
-    String recipeName;
+    ProgressBar loadingPb;
+
+    Snackbar snackOver;
+
+    ArrayList<Ingredient> ingredients;
+
 
 
     @Override
@@ -53,181 +66,235 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(findViewById(R.id.recipe_list) != null){
-            isTablet = true;
+        tabletSize = getResources().getBoolean(isTablet);
 
-            mRecycler = (RecyclerView) findViewById(R.id.recipe_recycler);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recipe_recycler);
 
-            mMainAdapter = new MainRecipeAdapter(this, new ArrayList<Recipe>());
+        loadingPb = (ProgressBar) findViewById(R.id.recipe_progress);
 
-            if(savedInstanceState != null){
-                ArrayList<Step> savedStep = savedInstanceState.getParcelableArrayList(getString(R.string.steps));
-                stepList = savedStep;
-            }
+        loadingTv = (TextView) findViewById(R.id.loading_text);
 
-        }else {
+        errorView = (TextView) findViewById(R.id.error_view);
 
-            isTablet = false;
+        mAdapter = new MainRecipeAdapter(this, new ArrayList<Recipe>());
+
+        if (tabletSize) {
+            GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+
+            mRecyclerView.setLayoutManager(layoutManager);
+        } else {
+            LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+
+            mRecyclerView.setLayoutManager(layoutManager);
         }
 
+        mRecyclerView.setAdapter(mAdapter);
+
+        if (savedInstanceState != null) {
+
+            mRecipeResult = savedInstanceState.getParcelableArrayList(getString(R.string.recipe_list));
+
+            mAdapter.setRecipe(mRecipeResult);
+
+        } else {
+
+            new RecipeAsync().execute();
+
+        }
+
+        mAdapter.setClickListener(this);
+
     }
+
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(getString(R.string.steps),stepList);
-    }
-
-    @Override
-    public void onBackPressed() {
-        FragmentManager fm = getSupportFragmentManager();
-        for (Fragment frag : fm.getFragments()) {
-            if (frag.isVisible()) {
-                FragmentManager childFm = frag.getChildFragmentManager();
-                if (childFm.getBackStackEntryCount() > 0) {
-                    childFm.popBackStack();
-                    return;
-                }
-            }
+        if(mRecipeResult != null) {
+            outState.putParcelableArrayList(getString(R.string.recipe_list), mRecipeResult);
         }
-        super.onBackPressed();
     }
 
-    @Override
-    public void onRecipeClick(View view, int position,final String recipe) {
-
-        recipeName = recipe;
-
-        if(isTablet){
-            new AsyncTask<Void, Void, ArrayList<Step>>() {
-                @Override
-                protected ArrayList<Step> doInBackground(Void... voids) {
-                    ArrayList<Step> result = new ArrayList<>();
-                    try {
-                        result.add(0,null);
-                        result.addAll(NetworkUtils.extractStepsFromJson(run(NetworkUtils.buildBaseUrl().toString()),recipe));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return result;
-                }
-
-                @Override
-                protected void onPostExecute(ArrayList<Step> step) {
-                    super.onPostExecute(step);
-
-                    stepList = step;
-
-                    mDetailRecycler = (RecyclerView) findViewById(R.id.detail_recycler);
-
-                    mDetailAdapter = new DetailAdapter(getApplicationContext(), new ArrayList<Step>());
-
-                    DetailActivityFragment detailActivityFragment = new DetailActivityFragment();
-                    detailActivityFragment.setSteps(step, recipe);
-
-                    getSupportFragmentManager().beginTransaction()
-                            .add(R.id.step_list,detailActivityFragment)
-                            .commit();
-                }
-            }.execute();
-
-        }else {
-            new AsyncTask<Void, Void, ArrayList<Step>>() {
-                @Override
-                protected ArrayList<Step> doInBackground(Void... voids) {
-                    ArrayList<Step> result = new ArrayList<>();
-                    try {
-                        result.add(0,null);
-                        result.addAll(NetworkUtils.extractStepsFromJson(run(NetworkUtils.buildBaseUrl().toString()),recipe));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return result;
-                }
-
-                @Override
-                protected void onPostExecute(ArrayList<Step> step) {
-                    super.onPostExecute(step);
-                    Toast.makeText(getApplicationContext(), "fragment click", Toast.LENGTH_SHORT).show();
-                    Intent detailIntent = new Intent(getApplicationContext(),DetailActivity.class);
-                    Bundle b = new Bundle();
-                    b.putString(getString(R.string.name),recipe);
-                    b.putParcelableArrayList(getString(steps),step);
-                    detailIntent.putExtras(b);
-                    startActivity(detailIntent);
-                }
-            }.execute();
-        }
-
-    }
-
-
-    //Details frag for steps
-    @Override
-    public void onStepInteraction(View view, int position, final String recipe) {
-
-        if(isTablet){
-
-            if(position == 0) {
-                new AsyncTask<Void, Void, ArrayList<Ingredient>>() {
+    public void repeatError(){
+        errorView.setText(getString(R.string.no_internet));
+        errorView.setVisibility(View.VISIBLE);
+        snackOver.make(errorView,R.string.no_internet, BaseTransientBottomBar.LENGTH_INDEFINITE)
+                .setAction(R.string.retry, new View.OnClickListener() {
                     @Override
-                    protected ArrayList<Ingredient> doInBackground(Void... voids) {
-
-                        ArrayList<Ingredient> result = new ArrayList<>();
-                        try {
-                            result = NetworkUtils.extractIngredientsFromJson(run(NetworkUtils.buildBaseUrl().toString()), recipeName);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    public void onClick(View view) {
+                        if(!isThereInternetConnection()){
+                            repeatError();
+                        }else {
+                            new RecipeAsync().execute();
                         }
-                        return result;
                     }
+                })
+                .setActionTextColor(getResources().getColor(R.color.highlights))
+                .show();
+    }
 
-                    @Override
-                    protected void onPostExecute(ArrayList<Ingredient> ingredient) {
-                        super.onPostExecute(ingredient);
+    @Override
+    public void onItemClick(View view, int position, final String recipe) {
 
-                        IngredientFragment ingredientFragment = new IngredientFragment();
-                        ingredientFragment.setIngredients(ingredient);
+        if(!isThereInternetConnection()){
+            errorView.setVisibility(View.INVISIBLE);
+            Snackbar.make(errorView,R.string.no_internet, BaseTransientBottomBar.LENGTH_INDEFINITE).show();
+            return;
+        }
 
-                        getSupportFragmentManager().beginTransaction()
-                                .addToBackStack(null)
-                                .add(R.id.step_list, ingredientFragment)
-                                .commit();
+        if(isLoading){
+            return;
+        }
 
-                    }
-                }.execute();
-            }else {
+        new IngredientAsync().execute(recipe);
 
-                MediaPlayerFragment mediaFragment = new MediaPlayerFragment();
-                mediaFragment.setPosition(position);
-                mediaFragment.setText(stepList.get(position).getDesc());
-                mediaFragment.setSteps(stepList);
-                mediaFragment.setVideoUrl(stepList.get(position).getVideoUrl());
+    }
 
-                getSupportFragmentManager().beginTransaction()
-                        .addToBackStack(null)
-                        .replace(R.id.step_list, mediaFragment)
-                        .commit();
+    private class IngredientAsync extends AsyncTask<String,Void,ArrayList<Ingredient>>{
+
+        String globalString;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            controlViewOnLoad(true);
+            errorView.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+            protected ArrayList<Ingredient> doInBackground(String... strings) {
+
+                globalString = strings[0];
+                ArrayList<Ingredient> result = new ArrayList<>();
+                try {
+                    result = NetworkUtils.extractIngredientsFromJson(run(NetworkUtils.buildBaseUrl().toString()), globalString);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(ArrayList<Ingredient> ingredient) {
+                super.onPostExecute(ingredient);
+
+                Log.v("Ingredients size", String.valueOf(ingredient.size()));
+                if(ingredient == null){
+                    errorView.setVisibility(View.INVISIBLE);
+                    Snackbar.make(errorView,R.string.error_loading, BaseTransientBottomBar.LENGTH_INDEFINITE).show();
+                }else {
+                    ingredients = ingredient;
+                    new StepAsync().execute(globalString);
+                }
 
             }
-        }else {
+    }
 
+    private class StepAsync extends AsyncTask<String,Void,ArrayList<Step>>{
 
+        String globalString;
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+
+            @Override
+            protected ArrayList<Step> doInBackground(String... strings) {
+
+                globalString = strings[0];
+
+                ArrayList<Step> result = new ArrayList<>();
+                try {
+                    result.add(0,null);
+                    result.addAll(NetworkUtils.extractStepsFromJson(run(NetworkUtils.buildBaseUrl().toString()),globalString));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(ArrayList<Step> step) {
+                super.onPostExecute(step);
+                controlViewOnLoad(false);
+
+                if(step != null) {
+                    Log.v("Step size", String.valueOf(step.size()));
+                    Intent stepIntent = new Intent(getApplicationContext(), DetailActivity.class);
+
+                    stepIntent.putExtra(getString(R.string.name),globalString);
+
+                    stepIntent.putParcelableArrayListExtra(getString(R.string.steps), step);
+
+                    stepIntent.putParcelableArrayListExtra(getString(R.string.ingredients), ingredients);
+
+                    startActivity(stepIntent);
+                }
+            }
+
+    }
+
+    @Override
+    public void onRecipeClick(View view, int position, String recipe) {
+    }
+
+    protected boolean isThereInternetConnection() {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnectedOrConnecting();
+    }
+
+    private class RecipeAsync extends AsyncTask<Void, Void, ArrayList<Recipe>> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            controlViewOnLoad(true);
+        }
+
+        @Override
+        protected ArrayList<Recipe> doInBackground(Void... voids) {
+            ArrayList<Recipe> recipeResult = new ArrayList<>();
+            try {
+                recipeResult = NetworkUtils.extractRecipeFromJson(run(NetworkUtils.buildBaseUrl().toString()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return recipeResult;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Recipe> recipeResult) {
+            if(recipeResult == null){
+                repeatError();
+            }else {
+                controlViewOnLoad(false);
+                mRecipeResult = recipeResult;
+                Intent updateDb = new Intent(getApplicationContext(), BakingDatabaseUpdateService.class);
+                updateDb.setAction(BakingDatabaseUpdateService.UPDATE_DB);
+                updateDb.putParcelableArrayListExtra(getString(R.string.recipe_list),mRecipeResult);
+                mAdapter.setRecipe(mRecipeResult);
+            }
         }
     }
 
-
-    //set actions for mediaplayer fragment in main activity
-    @Override
-    public void onMediaPlayerInteraction(Uri uri) {
-
+    public void controlViewOnLoad(boolean showBoolean) {
+        if (showBoolean) {
+            isLoading = true;
+            loadingTv.setVisibility(View.VISIBLE);
+            loadingPb.setVisibility(View.VISIBLE);
+            errorView.setVisibility(View.VISIBLE);
+        } else {
+            isLoading = false;
+            loadingTv.setVisibility(View.GONE);
+            loadingPb.setVisibility(View.GONE);
+            errorView.setVisibility(View.GONE);
+        }
     }
 
-    //Set actions on ingredient fragment in mainactivity
-    @Override
-    public void onIngredientInteraction(ArrayList<Ingredient> ingredients) {
-
-    }
 
     OkHttpClient connect = new OkHttpClient();
 
@@ -242,4 +309,7 @@ public class MainActivity extends AppCompatActivity implements
 
         return result;
     }
+
+
+
 }

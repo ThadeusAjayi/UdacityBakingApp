@@ -12,4 +12,29 @@
         android:layout_height="match_parent">
     </android.support.v7.widget.RecyclerView>
 
+    <ProgressBar
+        android:id="@+id/recipe_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="invisible"/>
+
+    <TextView
+        android:id="@+id/loading_text"
+        android:text="@string/loading_text"
+        style="@style/loading"
+        android:layout_marginTop="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"/>
+
+    <TextView
+        android:id="@+id/error_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/TitleLinks"
+        android:text="@string/empty"
+        android:visibility="invisible"
+        android:layout_gravity="center_horizontal"/>
+
 </FrameLayout>

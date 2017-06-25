@@ -3,6 +3,8 @@ package com.shopspreeng.android.udacitybakingapp.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+
 /**
  * Created by jayson surface on 18/06/2017.
  */
@@ -26,6 +28,8 @@ public class Ingredient extends Recipe implements Parcelable{
         }
     };
 
+
+    //TODO reformat toString function to show on step fragment
     @Override
     public String toString() {
         return "Ingredient{" +
@@ -33,6 +37,17 @@ public class Ingredient extends Recipe implements Parcelable{
                 ", mMeasure='" + mMeasure + '\'' +
                 ", mIngredient='" + mIngredient + '\'' +
                 '}';
+    }
+
+    public static String getFormattedIngredients(ArrayList<Ingredient> ingredients){
+        int ingredCount = 1;
+        String formattedIngred = "";
+        for(int i = 0; i < ingredients.size(); i ++) {
+            formattedIngred = String.valueOf(ingredCount) + "\t" +ingredients.get(i).getmIngredient() + "\n";
+            formattedIngred += "\t" +ingredients.get(i).getmQty() + " " + ingredients.get(i).getmIngredient();
+            ingredCount++;
+        }
+        return formattedIngred;
     }
 
     String mQty, mMeasure, mIngredient;

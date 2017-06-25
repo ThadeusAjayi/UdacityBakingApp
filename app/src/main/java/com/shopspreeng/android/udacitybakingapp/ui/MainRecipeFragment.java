@@ -1,84 +1,33 @@
 package com.shopspreeng.android.udacitybakingapp.ui;
 
 import android.content.Context;
-import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.R;
-import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
-import com.shopspreeng.android.udacitybakingapp.data.Recipe;
-import com.shopspreeng.android.udacitybakingapp.data.Step;
-
-import java.io.IOException;
-import java.util.ArrayList;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
  * to handle interaction events.
  */
-public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.ItemClickListener {
+public class MainRecipeFragment extends Fragment {
 
     OnRecipeClickListener mListener;
-
-    private RecyclerView mRecyclerView;
-
-    private MainRecipeAdapter mAdapter;
-
-    ArrayList<Recipe> mRecipeResult;
 
     public MainRecipeFragment() {
         // Required empty public constructor
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_recipe, container, false);
+        return inflater.inflate(R.layout.fragment_recipe, container, false);
 
-        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recipe_recycler);
-
-        mAdapter = new MainRecipeAdapter(getActivity(), new ArrayList<Recipe>());
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-
-        mRecyclerView.setLayoutManager(layoutManager);
-
-        mRecyclerView.setAdapter(mAdapter);
-
-        mAdapter.setClickListener(this);
-
-        if(savedInstanceState != null){
-            ArrayList<Recipe> savedRecipe = savedInstanceState.getParcelableArrayList(getString(R.string.recipe_list));
-            mRecipeResult = savedRecipe;
-            mAdapter.setRecipe(mRecipeResult);
-
-        }else {
-            new RecipeAsync().execute();
-        }
-
-        return rootView;
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(getString(R.string.recipe_list), mRecipeResult);
     }
 
     @Override
@@ -98,14 +47,6 @@ public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.It
         mListener = null;
     }
 
-    @Override
-    public void onItemClick(View view, int position, final String recipe) {
-
-        mListener.onRecipeClick(view, position,recipe);
-
-
-    }
-
 
     /**
      * This interface must be implemented by activities that contain this
@@ -120,41 +61,6 @@ public class MainRecipeFragment extends Fragment implements MainRecipeAdapter.It
 
     public interface OnRecipeClickListener {
         void onRecipeClick(View view, int position, String recipe);
-    }
-//TODO set error text on no data return and avoid crash, check internet availability
-    private class RecipeAsync extends AsyncTask<Void, Void, ArrayList<Recipe>> {
-
-        @Override
-        protected ArrayList<Recipe> doInBackground(Void... voids) {
-            ArrayList<Recipe> recipeResult = new ArrayList<>();
-            try {
-                recipeResult = NetworkUtils.extractRecipeFromJson(run(NetworkUtils.buildBaseUrl().toString()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return recipeResult;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<Recipe> recipeResult) {
-            mAdapter.setRecipe(recipeResult);
-            mRecipeResult = recipeResult;
-        }
-    }
-
-    OkHttpClient connect = new OkHttpClient();
-
-    String run(String url) throws IOException {
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
-
-        Response response = connect.newCall(request).execute();
-
-        String result = response.body().string();
-
-        return result;
     }
 
 }

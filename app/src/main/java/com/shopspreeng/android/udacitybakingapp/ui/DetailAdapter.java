@@ -15,7 +15,9 @@ import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.util.ArrayList;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+import static com.shopspreeng.android.udacitybakingapp.R.string.steps;
 
 /**
  * Created by jayson surface on 19/06/2017.
@@ -24,12 +26,13 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailViewHolder> {
 
     ArrayList<Step> steps = new ArrayList<>();
+    ArrayList<Ingredient> ingred = new ArrayList<>();
     LayoutInflater inflater;
     ItemClickListener mClickListener;
 
     public DetailAdapter(){}
 
-    public DetailAdapter(Context context,@Nullable ArrayList<Step> steps){
+    public DetailAdapter(Context context,ArrayList<Step> steps){
         inflater = LayoutInflater.from(context);
         this.steps = steps;
     }
@@ -39,10 +42,14 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
         notifyDataSetChanged();
     }
 
+    public void setIngred(ArrayList<Ingredient> ingred){
+        this.ingred = ingred;
+    }
+
     @Override
     public DetailViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        View rootView = inflater.inflate(R.layout.recipe_card,parent,false);
+        View rootView = inflater.inflate(R.layout.step_card,parent,false);
 
         DetailViewHolder holder = new DetailViewHolder(rootView);
 
@@ -52,32 +59,29 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
     @Override
     public void onBindViewHolder(DetailViewHolder holder, int position) {
 
-        ViewGroup.LayoutParams params = holder.cardView.getLayoutParams();
+        ViewGroup.LayoutParams tvParams = holder.detailText.getLayoutParams();
+        ViewGroup.LayoutParams cvParams = holder.cardView.getLayoutParams();
 
+        //TODO handle ingredient to be a tv or coordinator layout
 
-        if(this.steps != null) {
-            params.height = 200;
-            holder.cardView.setLayoutParams(params);
             Step step = steps.get(position);
             if (step == null) {
-                holder.detailText.setText("Ingredients");
+                cvParams.height = WRAP_CONTENT;
+                tvParams.height = WRAP_CONTENT;
+                holder.cardView.setLayoutParams(cvParams);
+                holder.detailText.setLayoutParams(tvParams);
+                holder.detailText.setText(ingred.toString());
             } else {
+                cvParams.height = 200;
                 holder.detailText.setText(step.getShortDesc().toString());
+                holder.serial.setText(String.valueOf(position)+".");
             }
-        }else {
-            params.height = WRAP_CONTENT;
-            holder.cardView.setLayoutParams(params);
-            holder.detailText.setText(R.string.select_recipe);
-        }
 
     }
 
     @Override
     public int getItemCount() {
-        if(steps != null) {
-            return steps.size();
-        }
-        return 0;
+        return steps.size();
     }
 
 
@@ -85,12 +89,14 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
 
         TextView detailText;
         CardView cardView;
+        TextView serial;
 
         public DetailViewHolder(View itemView) {
             super(itemView);
             if(steps != null) {
                 itemView.setOnClickListener(this);
             }
+            serial = (TextView) itemView.findViewById(R.id.id_tv);
             cardView = (CardView) itemView.findViewById(R.id.card_view);
             detailText = (TextView) itemView.findViewById(R.id.title_view);
         }
@@ -107,4 +113,5 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
     interface ItemClickListener{
         void onItemClick(View view, int position,String recipe);
     }
+
 }

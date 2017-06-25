@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,42 +47,23 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
 
     DetailAdapter mDetailAdapter;
 
-    String recipeName;
+    ArrayList<Ingredient> ingredients;
 
-    ArrayList<Step> stepFromMain;
+    ArrayList<Step> stepList;
 
     private OnStepInteractionListener mListener;
+
+    private boolean tabletSize;
 
     public DetailActivityFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment DetailActivityFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static DetailActivityFragment newInstance(String param1, String param2) {
-        DetailActivityFragment fragment = new DetailActivityFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
 
     }
 
@@ -93,6 +75,8 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
 
         mRecycler = (RecyclerView) view.findViewById(R.id.detail_recycler);
 
+        tabletSize = getContext().getResources().getBoolean(R.bool.isTablet);
+
         mDetailAdapter = new DetailAdapter(getContext(), new ArrayList<Step>());
 
         mRecycler.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false));
@@ -100,11 +84,22 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
         mRecycler.setAdapter(mDetailAdapter);
 
         if(savedInstanceState != null){
-            ArrayList<Step> savedSteps = savedInstanceState.getParcelableArrayList(getString(R.string.steps));
-            setSteps(savedSteps,null);
-            mDetailAdapter.setSteps(getSteps());
+            stepList = savedInstanceState.getParcelableArrayList(getString(R.string.steps));
+            ingredients = savedInstanceState.getParcelableArrayList(getString(R.string.ingredients));
+            mDetailAdapter.setSteps(stepList);
+            mDetailAdapter.setIngred(ingredients);
         }else {
-            mDetailAdapter.setSteps(getSteps());
+            if(tabletSize) {
+                stepList = getActivity().getIntent().getParcelableArrayListExtra(getString(R.string.steps));
+                ingredients = getActivity().getIntent().getParcelableArrayListExtra(getString(R.string.ingredients));
+            }else {
+                stepList = getSteps();
+                ingredients = getIngredients();
+            }
+
+            mDetailAdapter.setSteps(stepList);
+            mDetailAdapter.setIngred(ingredients);
+
         }
 
         mDetailAdapter.setClickListener(this);
@@ -115,7 +110,8 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(getString(R.string.steps),stepFromMain);
+        outState.putParcelableArrayList(getString(R.string.steps),stepList);
+        outState.putParcelableArrayList(getString(R.string.ingredients),ingredients);
     }
 
     @Override
@@ -141,36 +137,25 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
 
     }
 
-
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnStepInteractionListener {
         // TODO: Update argument type and name
         void onStepInteraction(View view, int position, String recipe);
     }
 
-
-    public void setSteps(@Nullable ArrayList<Step> fromMain, String recipe){
-        if(fromMain == null){
-            stepFromMain = getActivity().getIntent().getExtras().getParcelableArrayList(getString(R.string.steps));
-            recipeName = getActivity().getIntent().getExtras().get(getString(R.string.name)).toString();
-        }else {
-            stepFromMain = fromMain;
-            recipeName = recipe;
-        }
+    public void setStepsList(ArrayList<Step> steps){
+        stepList = steps;
     }
 
-    private ArrayList<Step> getSteps(){
-        return stepFromMain;
+    public ArrayList<Step> getSteps(){
+        return stepList;
+    }
+
+    public void setIngredientList(ArrayList<Ingredient> ingredient){
+        ingredients = ingredient;
+    }
+
+    public ArrayList<Ingredient> getIngredients(){
+        return ingredients;
     }
 
 }

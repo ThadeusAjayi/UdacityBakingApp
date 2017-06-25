@@ -5,6 +5,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.widget.GridLayoutManager;
@@ -85,35 +86,15 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
 
     private PlaybackStateCompat.Builder stateBuilder;
 
+    private boolean tabletSize;
+
     public MediaPlayerFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment MediaPlayerFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static MediaPlayerFragment newInstance(String param1, String param2) {
-        MediaPlayerFragment fragment = new MediaPlayerFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
@@ -130,6 +111,8 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_media_player, container, false);
+
+        tabletSize = getContext().getResources().getBoolean(R.bool.isTablet);
 
         mPlayerView = (SimpleExoPlayerView) rootView.findViewById(R.id.player_view);
 
@@ -183,22 +166,22 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
             }
         });
 
-            if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-                hideSystemUI();
+            if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE && !tabletSize){
             /*if(savedInstanceState != null){
                 continuePlayPosition(playPosition,true);
             }*/
+                hideSystemUI();
                 mPlayerView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
                 descView.setVisibility(View.GONE);
                 prev.setVisibility(View.GONE);
                 next.setVisibility(View.GONE);
             }
 
-
-
         return rootView;
 
     }
+
+
 
     private void hideSystemUI() {
         getActivity().getWindow().getDecorView().setSystemUiVisibility(
@@ -272,23 +255,12 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
         mExoPlayer.setPlayWhenReady(playWhenReady);
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnMediaPlayerFragmentInteraction {
         // TODO: Update argument type and name
         void onMediaPlayerInteraction(Uri uri);
     }
     public void setSteps(ArrayList<Step> desc){
         description = desc;
-        Log.v("Step Size", description.size() + " " + description.toString());
     }
 
     public void setPosition(int pos){
@@ -314,7 +286,7 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
             MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
                     getContext(), userAgent), new DefaultExtractorsFactory(), null, null);
             mExoPlayer.prepare(mediaSource);
-            mExoPlayer.setPlayWhenReady(true);
+            mExoPlayer.setPlayWhenReady(false);
         }
     }
 
@@ -328,6 +300,7 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
     @Override
     public void onPause() {
         super.onPause();
+        mExoPlayer.release();
     }
 
     @Override
@@ -373,9 +346,10 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
 
         @Override
         public void onSkipToNext() {
-            //super.onSkipToNext();
+            super.onSkipToNext();
         }
 
 
     }
+
 }

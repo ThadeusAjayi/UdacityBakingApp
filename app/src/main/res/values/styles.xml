@@ -13,17 +13,23 @@
         <item name="android:layout_gravity">center</item>
         <item name="android:textSize">20sp</item>
         <item name="android:textColor">@android:color/white</item>
-        <item name="android:text">Heading</item>
         <item name="android:padding">8dp</item>
     </style>
 
     <style name="TitleLinks">
-        <item name="android:text">Links</item>
+        <item name="android:gravity">left</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:padding">8dp</item>
+    </style>
+
+    <style name="loading">
         <item name="android:gravity">center</item>
-        <item name="android:textSize">26sp</item>
         <item name="android:layout_gravity">center_horizontal</item>
-        <item name="android:layout_marginTop">120dp</item>
+        <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/highlights</item>
+        <item name="android:padding">8dp</item>
     </style>
 
 </resources>
