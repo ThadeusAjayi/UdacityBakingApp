@@ -7,29 +7,30 @@ import android.database.sqlite.SQLiteOpenHelper;
 import static android.R.attr.version;
 
 /**
- * Created by jayson surface on 25/06/2017.
+ * Created by jayson surface on 26/06/2017.
  */
 
 public class BakingDbHelper extends SQLiteOpenHelper {
 
-    private static int dbVersion = 1;
+    public static final String DATABASE_NAME = "baking_db";
 
-    private static final String DATABASE_NAME = "baking.db";
+    public static final int VERSION = 1;
+
+    final String CREATE_BAKING_TABLE = "CREATE TABLE " +
+            BakingContract.BakingEntry.TABLE_NAME + " (" +
+            BakingContract.BakingEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"+
+            BakingContract.BakingEntry.RECIPE + " TEXT NOT NULL,"+
+            BakingContract.BakingEntry.INGREDIENTS + " TEXT,"+
+            BakingContract.BakingEntry.STEPS + " TEXT" +
+            ");";
 
     public BakingDbHelper(Context context) {
-        super(context, DATABASE_NAME, null, dbVersion);
+        super(context, DATABASE_NAME, null, VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        final String SQL_CREATE_WAITLIST_TABLE = "CREATE TABLE " +
-                BakingContract.BakingEntry.TABLE_NAME + "(" +
-                BakingContract.BakingEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                BakingContract.BakingEntry.COLUMN_NAME + " TEXT NOT NULL," +
-                BakingContract.BakingEntry.COLUMN_SERVING + " INTEGER NOT NULL," +
-                ");";
-
-        sqLiteDatabase.execSQL(SQL_CREATE_WAITLIST_TABLE);
+        sqLiteDatabase.execSQL(CREATE_BAKING_TABLE);
     }
 
     @Override

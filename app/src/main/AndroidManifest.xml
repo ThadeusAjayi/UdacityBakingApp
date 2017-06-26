@@ -23,6 +23,12 @@
         </activity>
         <activity android:name=".ui.DetailActivity" />
 
+        <receiver android:name="android.support.v4.media.session.MediaButtonReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
         <receiver android:name=".BakingAppWidgetProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -38,6 +44,12 @@
             android:exported="false" />
 
         <activity android:name=".ui.PhoneMediaPlayerActivity"></activity>
+
+        <provider
+            android:name="com.shopspreeng.android.udacitybakingapp.data.BakingContentProvider"
+            android:authorities="com.shopspreeng.android.udacitybakingapp"
+            android:exported="false"/>
+
     </application>
 
 </manifest>

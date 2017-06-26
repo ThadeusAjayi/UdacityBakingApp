@@ -78,7 +78,7 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
             fragmentManager.beginTransaction()
                     .add(R.id.detail_container,detailActivityFragment)
-                    .replace(R.id.sub_container, mediaPlayerFragment)
+                    .add(R.id.sub_container, mediaPlayerFragment)
                     .commit();
         }else {
 

@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
 
                 if(step != null) {
                     Log.v("Step size", String.valueOf(step.size()));
-                    Intent stepIntent = new Intent(getApplicationContext(), DetailActivity.class);
+                    Intent stepIntent = new Intent(MainActivity.this, DetailActivity.class);
 
                     stepIntent.putExtra(getString(R.string.name),globalString);
 
@@ -273,9 +273,6 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
             }else {
                 controlViewOnLoad(false);
                 mRecipeResult = recipeResult;
-                Intent updateDb = new Intent(getApplicationContext(), BakingDatabaseUpdateService.class);
-                updateDb.setAction(BakingDatabaseUpdateService.UPDATE_DB);
-                updateDb.putParcelableArrayListExtra(getString(R.string.recipe_list),mRecipeResult);
                 mAdapter.setRecipe(mRecipeResult);
             }
         }

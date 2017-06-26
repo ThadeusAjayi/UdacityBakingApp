@@ -8,8 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.shopspreeng.android.udacitybakingapp.data.BakingContract;
-import com.shopspreeng.android.udacitybakingapp.data.BakingDbHelper;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 
 import java.util.ArrayList;
@@ -34,6 +32,8 @@ public class BakingDatabaseUpdateService extends IntentService {
     public static final String UPDATE_DB = "update-db";
 
     SQLiteDatabase mDb;
+
+
 
     public BakingDatabaseUpdateService() {
         super("BakingDatabaseUpdateService");
@@ -74,8 +74,7 @@ public class BakingDatabaseUpdateService extends IntentService {
         if (intent != null) {
             final String action = intent.getAction();
             if (UPDATE_DB.equals(action)) {
-                final ArrayList<Recipe> param1 = intent.getParcelableArrayListExtra(getString(R.string.recipe_list));
-                insertRecipeToDb(param1);
+
             }
         }
     }
@@ -86,40 +85,6 @@ public class BakingDatabaseUpdateService extends IntentService {
      */
     private void insertRecipeToDb(ArrayList<Recipe> param1) {
         // TODO: Handle action Foo
-
-        ContentValues cv = new ContentValues();
-        List<ContentValues> list = new ArrayList<>();
-
-        BakingDbHelper dbHelper = new BakingDbHelper(getApplicationContext());
-        mDb = dbHelper.getWritableDatabase();
-
-        for(Recipe recipe : param1){
-            cv.put(BakingContract.BakingEntry.COLUMN_NAME,recipe.getmName());
-            cv.put(BakingContract.BakingEntry.COLUMN_SERVING,recipe.getmServings());
-            list.add(cv);
-        }
-
-        Log.v("list size", String.valueOf(list.size()));
-
-        Cursor result = mDb.query(BakingContract.BakingEntry.TABLE_NAME,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            BakingContract.BakingEntry._ID);
-
-        if(result.getCount() == 0) {
-
-            for (ContentValues c : list) {
-                mDb.insert(BakingContract.BakingEntry.TABLE_NAME,
-                        null,
-                        c);
-            }
-        }else {
-            Log.v("query size", String.valueOf(result.getCount()));
-        }
-
 
         throw new UnsupportedOperationException("Not yet implemented");
     }
