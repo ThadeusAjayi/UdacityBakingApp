@@ -17,10 +17,11 @@ public class DatabaseUtils {
 
         ContentValues [] result = new ContentValues[recipeArrayList.size()];
 
-        ContentValues contentValues = new ContentValues();
+        ContentValues contentValues;
 
         int count = 0;
         for(Recipe a : recipeArrayList){
+            contentValues = new ContentValues();
             contentValues.put(BakingContract.BakingEntry.RECIPE,a.getmName());
             contentValues.put(BakingContract.BakingEntry.INGREDIENTS,a.getmIngredients());
             contentValues.put(BakingContract.BakingEntry.STEPS,a.getmSteps());
@@ -28,17 +29,6 @@ public class DatabaseUtils {
             count++;
         }
         return result;
-    }
-
-    public ContentValues getStepsAndIngredientArray(ArrayList<Step> steps, ArrayList<Ingredient> ingredients){
-
-        ContentValues cv = new ContentValues();
-
-        cv.put(BakingContract.BakingEntry.STEPS,steps.toString());
-        cv.put(BakingContract.BakingEntry.INGREDIENTS,ingredients.toString());
-
-        return cv;
-
     }
 
     public ArrayList<Recipe> cursorToArrayListRecipe(Cursor cursor){

@@ -3,8 +3,8 @@
     android:layout_height="match_parent"
     android:padding="@dimen/widget_margin">
 
-    <ImageView
-        android:id="@+id/bake_image"
+    <ListView
+        android:id="@+id/baking_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -13,14 +13,5 @@
         android:src="@drawable/bake"
         android:contentDescription="@string/appwidget_text" />
 
-    <TextView
-        android:id="@+id/bake_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/widgetName"
-        android:textSize="20sp"
-        android:textColor="@android:color/white"
-        android:layout_alignBottom="@id/bake_image"
-        android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>

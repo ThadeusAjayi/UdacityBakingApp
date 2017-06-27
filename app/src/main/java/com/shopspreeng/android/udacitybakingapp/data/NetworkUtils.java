@@ -46,27 +46,6 @@ public class NetworkUtils {
         return url;
     }
 
-
-    public static ArrayList<Recipe> extractRecipeFromJson(String recipeJson) {
-
-        ArrayList<Recipe> jsonResult = new ArrayList<>();
-
-        try {
-            JSONArray recipeArray = new JSONArray(recipeJson);
-            for (int i = 0; i < recipeArray.length(); i++) {
-                JSONObject recipeObject = recipeArray.getJSONObject(i);
-                String id = recipeObject.getString("id");
-                String name = recipeObject.getString("name");
-                String servings = recipeObject.getString("servings");
-
-                jsonResult.add(new Recipe(id, name, servings));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return jsonResult;
-    }
-
     public static ArrayList<Ingredient> extractIngredientsFromJson(String ingredientJson){
 
         ArrayList<Ingredient> jsonResult = new ArrayList<>();

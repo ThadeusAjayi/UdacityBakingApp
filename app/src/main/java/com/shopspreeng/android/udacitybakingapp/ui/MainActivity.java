@@ -127,8 +127,8 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
                         data.moveToPosition(2);
                         Log.v(TAG + " database cursor size", " " + data.getString(data.getColumnIndex(BakingContract.BakingEntry.RECIPE)));
                         mRecipeResult = databaseUtils.cursorToArrayListRecipe(data);
-                        Log.v(TAG + " converCursor", mRecipeResult.get(1).toString());
-//                    mAdapter.setRecipe();
+                        Log.v(TAG + " convetrCursor", mRecipeResult.get(1).toString());
+                        mAdapter.setRecipe(mRecipeResult);
                     } else {
                         if (!isThereInternetConnection()) {
 
@@ -328,10 +328,10 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
                 controlViewOnLoad(false);
                 mRecipeResult = recipeResult;
                 mAdapter.setRecipe(mRecipeResult);
-                /*Intent intent = new Intent(MainActivity.this,BakingDatabaseUpdateService.class);
+                Intent intent = new Intent(MainActivity.this,BakingDatabaseUpdateService.class);
                 intent.setAction(BakingDatabaseUpdateService.INSERT_RECIPE);
                 intent.putParcelableArrayListExtra(getString(R.string.recipe_list),mRecipeResult);
-                startService(intent);*/
+                startService(intent);
             }
         }
     }

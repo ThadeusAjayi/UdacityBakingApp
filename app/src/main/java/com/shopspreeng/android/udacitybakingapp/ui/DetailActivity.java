@@ -131,7 +131,7 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
                 Intent intent = new Intent(this,PhoneMediaPlayerActivity.class);
                 intent.putParcelableArrayListExtra(getString(R.string.steps),steps);
                 intent.putExtra(getString(R.string.name),recipe);
-                intent.putExtra(getString(position),position);
+                intent.putExtra(getString(R.string.position),position);
                 startActivity(intent);
 
         }

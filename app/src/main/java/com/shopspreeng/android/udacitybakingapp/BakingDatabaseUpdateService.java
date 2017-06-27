@@ -1,7 +1,10 @@
 package com.shopspreeng.android.udacitybakingapp;
 
 import android.app.IntentService;
+import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProvider;
 import android.content.AsyncTaskLoader;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.Context;
@@ -70,6 +73,10 @@ public class BakingDatabaseUpdateService extends IntentService {
 
                 if(rows > 0){
                     Log.v("Bulk Insert successful", rows +" rows inserted");
+                    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getApplicationContext());
+                    int [] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(getApplication(),BakingAppWidgetProvider.class));
+
+                    appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.layout.list_view_widget_item);
                 }else {
                     throw new UnsupportedOperationException("Not yet implemented");
                 }

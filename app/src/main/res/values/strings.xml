@@ -26,4 +26,5 @@
     <string name="serving">serving</string>
     <string name="position">position</string>
     <string name="queryAll">queryDb</string>
+    <string name="widgetName">Baker</string>
 </resources>

@@ -10,6 +10,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.widget.RemoteViews;
 
+import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
+import com.shopspreeng.android.udacitybakingapp.ui.DetailActivity;
 import com.shopspreeng.android.udacitybakingapp.ui.MainActivity;
 
 /**
@@ -24,7 +26,13 @@ public class BakingAppWidgetProvider extends AppWidgetProvider {
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
 
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.baking_app_widget_provider);
+        RemoteViews views;
+        if(width < 300){
+            views = new RemoteViews(context.getPackageName(), R.layout.baking_app_widget_provider);
+        }else{
+            views = getListViewRv(context);
+        }
+
 
         Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context,0,intent,0);
@@ -40,6 +48,19 @@ public class BakingAppWidgetProvider extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
+    }
+
+    public static RemoteViews getListViewRv(Context context){
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.baking_app_listview_widget);
+
+        Intent intent = new Intent(context, ListViewWidgetService.class);
+        remoteViews.setRemoteAdapter(R.id.baking_list, intent);
+
+        Intent appIntent = new Intent(context,DetailActivity.class);
+        PendingIntent appPendingIntent = PendingIntent.getActivity(context,0,appIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+        remoteViews.setPendingIntentTemplate(R.id.baking_list,appPendingIntent);
+
+        return remoteViews;
     }
 
     @Override
