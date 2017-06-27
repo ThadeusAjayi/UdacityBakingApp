@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import static android.R.attr.defaultHeight;
+import static android.R.attr.id;
 import static com.shopspreeng.android.udacitybakingapp.data.BakingContract.BakingEntry.TABLE_NAME;
 
 /**
@@ -57,7 +59,27 @@ public class BakingContentProvider extends ContentProvider {
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
                         @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        return null;
+
+        final SQLiteDatabase db = mBakingDbHelper.getReadableDatabase();
+
+        Cursor retCursor;
+        switch (sUriMatcher.match(uri)){
+            case BAKING:
+                retCursor = db.query(TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: " + uri);
+
+        }
+        retCursor.setNotificationUri(getContext().getContentResolver(),uri);
+
+        return retCursor;
     }
 
     @Nullable
@@ -68,6 +90,7 @@ public class BakingContentProvider extends ContentProvider {
 
     @Nullable
     @Override
+    //content values here should contain string of recipe
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) {
 
         final SQLiteDatabase db = mBakingDbHelper.getWritableDatabase();
@@ -102,10 +125,59 @@ public class BakingContentProvider extends ContentProvider {
         throw new UnsupportedOperationException("Unknown uri: " + uri);
 
     }
-
+    //content values here should contain string of steps and ingredients
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String selection,
                       @Nullable String[] selectionArgs) {
-        return 0;
+
+        final SQLiteDatabase db = mBakingDbHelper.getWritableDatabase();
+
+        int id;
+
+        switch (sUriMatcher.match(uri)) {
+
+            case BAKING_WITH_ID:
+                id = db.update(TABLE_NAME,contentValues,selection,selectionArgs);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        getContext().getContentResolver().notifyChange(uri,null);
+
+        return id;
+    }
+
+    @Override
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+
+        final SQLiteDatabase db = mBakingDbHelper.getWritableDatabase();
+
+        switch (sUriMatcher.match(uri)) {
+
+            case BAKING:
+                db.beginTransaction();
+                int rowInserted = 0;
+
+                try{
+                    for(ContentValues value : values){
+                        long _id = db.insert(BakingContract.BakingEntry.TABLE_NAME,null,value);
+                        if(_id > -1){
+                            rowInserted++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                }finally {
+                    db.endTransaction();
+                }
+
+                if(rowInserted > 0){
+                    getContext().getContentResolver().notifyChange(uri,null);
+                }
+                return rowInserted;
+            default:
+                return super.bulkInsert(uri,values);
+        }
+
     }
 }

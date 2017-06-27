@@ -1,9 +1,11 @@
 package com.shopspreeng.android.udacitybakingapp.ui;
 
+import android.app.IntentService;
+import android.content.ContentResolver;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
-import android.net.Uri;
+import android.content.Intent;
+import android.database.Cursor;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,14 +13,15 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.shopspreeng.android.udacitybakingapp.BakingDatabaseUpdateService;
 import com.shopspreeng.android.udacitybakingapp.R;
+import com.shopspreeng.android.udacitybakingapp.data.BakingContract;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-import static android.view.KeyCharacterMap.load;
-import static com.shopspreeng.android.udacitybakingapp.R.id.parent;
+import static android.R.attr.data;
 
 
 /**
@@ -32,9 +35,9 @@ public class MainRecipeAdapter extends RecyclerView.Adapter<MainRecipeAdapter.Re
     ArrayList<Recipe> mRecipe;
     Context context;
 
-    public MainRecipeAdapter(Context context, ArrayList<Recipe> recipe){
+    public MainRecipeAdapter(Context context, ArrayList<Recipe> recipes){
         inflater = LayoutInflater.from(context);
-        mRecipe = recipe;
+        mRecipe = recipes;
     }
 
     public void setRecipe(ArrayList<Recipe> recipe){
@@ -60,9 +63,11 @@ public class MainRecipeAdapter extends RecyclerView.Adapter<MainRecipeAdapter.Re
             ViewGroup.LayoutParams params = holder.titleHead.getLayoutParams();
         }
 
-        String currentRecipe = mRecipe.get(position).getmName();
-        holder.titleHead.setText(currentRecipe);
-        Picasso.with(context).load(setImage(currentRecipe)).fit().into(holder.recipeImage);
+        if(mRecipe != null) {
+            String recipeName = mRecipe.get(position).getmName();
+            holder.titleHead.setText(recipeName);
+            Picasso.with(context).load(setImage(recipeName)).fit().into(holder.recipeImage);
+        }
 
     }
 

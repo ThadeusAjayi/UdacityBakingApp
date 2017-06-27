@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.R;
 import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
+import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
+import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.io.IOException;
@@ -22,6 +24,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.shopspreeng.android.udacitybakingapp.R.bool.isTablet;
+import static com.shopspreeng.android.udacitybakingapp.R.string.position;
 
 public class DetailActivity extends AppCompatActivity implements DetailActivityFragment.OnStepInteractionListener,
         MediaPlayerFragment.OnMediaPlayerFragmentInteraction {
@@ -54,7 +57,9 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
             recipeName = intent.getStringExtra(getString(R.string.name));
 
-            steps = intent.getParcelableArrayListExtra(getString(R.string.steps));
+            Recipe getRecipe = intent.getParcelableExtra(getString(R.string.recipe_list));
+
+            steps = NetworkUtils.extractStepsFromJson(getRecipe.getmSteps());
 
         }else {
             recipeName = savedInstanceState.getString(getString(R.string.name));
@@ -67,6 +72,9 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
         DetailActivityFragment detailActivityFragment = new DetailActivityFragment();
 
         FragmentManager fragmentManager = getSupportFragmentManager();
+
+        //TODO create a method to convert parcelable intent and convert to ArrayList of Ingredients and Steps
+
 
         if(tabletSize) {
 
@@ -83,7 +91,8 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
         }else {
 
             detailActivityFragment.setStepsList(steps);
-            ArrayList<Ingredient> toDetail = getIntent().getParcelableArrayListExtra(getString(R.string.ingredients));
+            Recipe getRecipe = getIntent().getParcelableExtra(getString(R.string.recipe_list));
+            ArrayList<Ingredient> toDetail = NetworkUtils.extractIngredientsFromJson(getRecipe.getmIngredients());
             detailActivityFragment.setIngredientList(toDetail);
 
             getSupportFragmentManager().beginTransaction()
@@ -106,10 +115,6 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
         if(tabletSize) {
 
-            if (position == 0) {
-
-            } else {
-
                 MediaPlayerFragment mediaPlayerFragment = new MediaPlayerFragment();
                 mediaPlayerFragment.setPosition(position);
                 mediaPlayerFragment.setText(steps.get(position).getDesc());
@@ -120,20 +125,15 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
                         .replace(R.id.sub_container, mediaPlayerFragment)
                         .commit();
 
-            }
+
         }else {
-
-            if (position == 0) {
-
-            } else {
 
                 Intent intent = new Intent(this,PhoneMediaPlayerActivity.class);
                 intent.putParcelableArrayListExtra(getString(R.string.steps),steps);
                 intent.putExtra(getString(R.string.name),recipe);
-                intent.putExtra(getString(R.string.position),position);
+                intent.putExtra(getString(position),position);
                 startActivity(intent);
 
-            }
         }
     }
 

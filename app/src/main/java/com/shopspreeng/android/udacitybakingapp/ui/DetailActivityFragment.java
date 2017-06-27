@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import com.shopspreeng.android.udacitybakingapp.R;
 import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
 import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
+import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.io.IOException;
@@ -90,8 +91,9 @@ public class DetailActivityFragment extends Fragment implements DetailAdapter.It
             mDetailAdapter.setIngred(ingredients);
         }else {
             if(tabletSize) {
-                stepList = getActivity().getIntent().getParcelableArrayListExtra(getString(R.string.steps));
-                ingredients = getActivity().getIntent().getParcelableArrayListExtra(getString(R.string.ingredients));
+                Recipe getRecipe = getActivity().getIntent().getParcelableExtra(getString(R.string.recipe_list));
+                stepList = NetworkUtils.extractStepsFromJson(getRecipe.getmSteps());
+                ingredients = NetworkUtils.extractIngredientsFromJson(getRecipe.getmIngredients());
             }else {
                 stepList = getSteps();
                 ingredients = getIngredients();

@@ -67,26 +67,20 @@ public class NetworkUtils {
         return jsonResult;
     }
 
-    public static ArrayList<Ingredient> extractIngredientsFromJson(String recipeJson, String recipeName){
+    public static ArrayList<Ingredient> extractIngredientsFromJson(String ingredientJson){
 
         ArrayList<Ingredient> jsonResult = new ArrayList<>();
 
         try {
-            JSONArray recipeArray = new JSONArray(recipeJson);
-            for(int i = 0; i < recipeArray.length(); i++) {
-                JSONObject recipeObject = recipeArray.getJSONObject(i);
-                String name = recipeObject.getString("name");
-                JSONArray ingredients = recipeObject.getJSONArray("ingredients");
-                if(name.equals(recipeName)) {
-                    for (int j = 0; j < ingredients.length(); j++) {
-                        JSONObject ingredientObject = ingredients.getJSONObject(j);
-                        String quantity = ingredientObject.getString("quantity");
-                        String measure = ingredientObject.getString("measure");
-                        String ingredient = ingredientObject.getString("ingredient");
+            JSONArray ingredientArray = new JSONArray(ingredientJson);
+            for(int i = 0; i < ingredientArray.length(); i++) {
+                JSONObject ingredientObject = ingredientArray.getJSONObject(i);
+                String quantity = ingredientObject.getString("quantity");
+                String measure = ingredientObject.getString("measure");
+                String ingredient = ingredientObject.getString("ingredient");
 
-                        jsonResult.add(new Ingredient(quantity, measure, ingredient));
-                    }
-                }
+                jsonResult.add(new Ingredient(quantity, measure, ingredient));
+
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -94,34 +88,47 @@ public class NetworkUtils {
         return jsonResult;
     }
 
-    public static ArrayList<Step> extractStepsFromJson(String recipeJson, String recipeName){
+    public static ArrayList<Step> extractStepsFromJson(String stepJson){
 
         ArrayList<Step> jsonResult = new ArrayList<>();
 
         try {
-            JSONArray recipeArray = new JSONArray(recipeJson);
-            for(int i = 0; i < recipeArray.length(); i++) {
-                JSONObject recipeObject = recipeArray.getJSONObject(i);
-                String name = recipeObject.getString("name");
-                JSONArray stepArray = recipeObject.getJSONArray("steps");
-                if(name.equals(recipeName)) {
-                    for(int j = 0; j < stepArray.length(); j++) {
-                        JSONObject stepsObject = stepArray.getJSONObject(j);
-                        String id = stepsObject.getString("id");
-                        String sDesc = stepsObject.getString("shortDescription");
-                        String desc = stepsObject.getString("description");
-                        String video = stepsObject.getString("videoURL");
+            JSONArray stepArray = new JSONArray(stepJson);
+            for(int i = 0; i < stepArray.length(); i++) {
+                JSONObject stepsObject = stepArray.getJSONObject(i);
+                String id = stepsObject.getString("id");
+                String sDesc = stepsObject.getString("shortDescription");
+                String desc = stepsObject.getString("description");
+                String video = stepsObject.getString("videoURL");
 
-                        jsonResult.add(new Step(id,sDesc,desc,video));
-
-                    }
-                }
-
+                jsonResult.add(new Step(id,sDesc,desc,video));
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return jsonResult;
+    }
+
+    public static ArrayList<Recipe> allJson(String recipeJson){
+
+        ArrayList<Recipe> resultRecipe = new ArrayList<>();
+
+        try {
+            JSONArray recipeArray = new JSONArray(recipeJson);
+            for(int i = 0; i < recipeArray.length(); i++){
+                JSONObject recipeObject = recipeArray.getJSONObject(i);
+                String name = recipeObject.getString("name");
+                String ingredients = recipeObject.getJSONArray("ingredients").toString();
+                String steps = recipeObject.getJSONArray("steps").toString();
+
+                resultRecipe.add(new Recipe(name,ingredients,steps));
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return resultRecipe;
     }
 
 }

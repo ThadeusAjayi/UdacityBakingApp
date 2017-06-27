@@ -59,23 +59,13 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
     @Override
     public void onBindViewHolder(DetailViewHolder holder, int position) {
 
-        ViewGroup.LayoutParams tvParams = holder.detailText.getLayoutParams();
         ViewGroup.LayoutParams cvParams = holder.cardView.getLayoutParams();
 
-        //TODO handle ingredient to be a tv or coordinator layout
+        Step step = steps.get(position);
+            cvParams.height = 200;
+            holder.detailText.setText(step.getShortDesc().toString());
+            holder.serial.setText(String.valueOf(position)+".");
 
-            Step step = steps.get(position);
-            if (step == null) {
-                cvParams.height = WRAP_CONTENT;
-                tvParams.height = WRAP_CONTENT;
-                holder.cardView.setLayoutParams(cvParams);
-                holder.detailText.setLayoutParams(tvParams);
-                holder.detailText.setText(ingred.toString());
-            } else {
-                cvParams.height = 200;
-                holder.detailText.setText(step.getShortDesc().toString());
-                holder.serial.setText(String.valueOf(position)+".");
-            }
 
     }
 

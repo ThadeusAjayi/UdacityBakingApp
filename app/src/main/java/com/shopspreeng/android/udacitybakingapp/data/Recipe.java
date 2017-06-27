@@ -9,12 +9,12 @@ import android.os.Parcelable;
 
 public class Recipe implements Parcelable{
 
-    public String mId, mName, mServings;
+    public String mName, mIngredients, mSteps;
 
     protected Recipe(Parcel in) {
-        mId = in.readString();
         mName = in.readString();
-        mServings = in.readString();
+        mIngredients = in.readString();
+        mSteps = in.readString();
     }
 
     public static final Creator<Recipe> CREATOR = new Creator<Recipe>() {
@@ -32,18 +32,10 @@ public class Recipe implements Parcelable{
     @Override
     public String toString() {
         return "Recipe{" +
-                "mId='" + mId + '\'' +
-                ", mName='" + mName + '\'' +
-                ", mServings='" + mServings + '\'' +
+                "mName='" + mName + '\'' +
+                ", mIngredients='" + mIngredients + '\'' +
+                ", mSteps='" + mSteps + '\'' +
                 '}';
-    }
-
-    public String getmId() {
-        return mId;
-    }
-
-    public void setmId(String mId) {
-        this.mId = mId;
     }
 
     public String getmName() {
@@ -54,21 +46,29 @@ public class Recipe implements Parcelable{
         this.mName = mName;
     }
 
-    public String getmServings() {
-        return mServings;
+    public String getmIngredients() {
+        return mIngredients;
     }
 
-    public void setmServings(String mServings) {
-        this.mServings = mServings;
+    public void setmIngredients(String mIngredients) {
+        this.mIngredients = mIngredients;
+    }
+
+    public String getmSteps() {
+        return mSteps;
+    }
+
+    public void setmSteps(String mSteps) {
+        this.mSteps = mSteps;
     }
 
     public Recipe(){}
 
 
-    public Recipe(String id, String name, String servings) {
+    public Recipe(String name, String ingredients, String steps) {
         mName = name;
-        mServings = servings;
-        mId = id;
+        mIngredients = ingredients;
+        mSteps = steps;
     }
 
 
@@ -79,8 +79,8 @@ public class Recipe implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(mId);
         parcel.writeString(mName);
-        parcel.writeString(mServings);
+        parcel.writeString(mIngredients);
+        parcel.writeString(mSteps);
     }
 }

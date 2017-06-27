@@ -1,16 +1,20 @@
 package com.shopspreeng.android.udacitybakingapp.ui;
 
 import android.app.IntentService;
+import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.CursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -24,6 +28,8 @@ import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.BakingDatabaseUpdateService;
 import com.shopspreeng.android.udacitybakingapp.R;
+import com.shopspreeng.android.udacitybakingapp.data.BakingContract;
+import com.shopspreeng.android.udacitybakingapp.data.DatabaseUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
 import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
@@ -43,6 +49,8 @@ import static com.shopspreeng.android.udacitybakingapp.R.string.ingredients;
 public class MainActivity extends AppCompatActivity implements MainRecipeFragment.OnRecipeClickListener,
         MainRecipeAdapter.ItemClickListener {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
+
     private RecyclerView mRecyclerView;
 
     private MainRecipeAdapter mAdapter;
@@ -57,12 +65,14 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
 
     Snackbar snackOver;
 
+    DatabaseUtils databaseUtils = new DatabaseUtils();
+
     ArrayList<Ingredient> ingredients;
 
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -76,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
 
         errorView = (TextView) findViewById(R.id.error_view);
 
-        mAdapter = new MainRecipeAdapter(this, new ArrayList<Recipe>());
+        mAdapter = new MainRecipeAdapter(this,new ArrayList<Recipe>());
 
         if (tabletSize) {
             GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
@@ -90,18 +100,48 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
 
         mRecyclerView.setAdapter(mAdapter);
 
-        if (savedInstanceState != null) {
 
+        if(savedInstanceState != null){
             mRecipeResult = savedInstanceState.getParcelableArrayList(getString(R.string.recipe_list));
-
             mAdapter.setRecipe(mRecipeResult);
+        }else {
 
-        } else {
 
-            new RecipeAsync().execute();
+            new AsyncTaskLoader<Cursor>(this) {
+                @Override
+                protected void onStartLoading() {
+                    super.onStartLoading();
+                    controlViewOnLoad(true);
+                }
 
+                @Override
+                public Cursor loadInBackground() {
+                    return getContentResolver().query(BakingContract.BakingEntry.CONTENT_URI, null, null, null, null);
+                }
+
+                @Override
+                public void deliverResult(Cursor data) {
+                    super.deliverResult(data);
+                    controlViewOnLoad(false);
+                    if (data.getCount() > 0) {
+                        data.moveToPosition(2);
+                        Log.v(TAG + " database cursor size", " " + data.getString(data.getColumnIndex(BakingContract.BakingEntry.RECIPE)));
+                        mRecipeResult = databaseUtils.cursorToArrayListRecipe(data);
+                        Log.v(TAG + " converCursor", mRecipeResult.get(1).toString());
+//                    mAdapter.setRecipe();
+                    } else {
+                        if (!isThereInternetConnection()) {
+
+                            repeatError();
+
+                        } else {
+
+                            new RecipeAsync().execute();
+                        }
+                    }
+                }
+            }.forceLoad();
         }
-
         mAdapter.setClickListener(this);
 
     }
@@ -136,19 +176,32 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
     @Override
     public void onItemClick(View view, int position, final String recipe) {
 
+
+        Intent stepIntent = new Intent(MainActivity.this, DetailActivity.class);
+
+        stepIntent.putExtra(getString(R.string.name),recipe);
+
+        stepIntent.putExtra(getString(R.string.recipe_list), mRecipeResult.get(position));
+
+        startActivity(stepIntent);
+
+/*
+
         if(!isThereInternetConnection()){
             errorView.setVisibility(View.INVISIBLE);
-            Snackbar.make(errorView,R.string.no_internet, BaseTransientBottomBar.LENGTH_INDEFINITE).show();
+            Snackbar.make(errorView,R.string.no_internet, BaseTransientBottomBar.LENGTH_SHORT).show();
             return;
         }
 
         if(isLoading){
             return;
         }
+*/
 
-        new IngredientAsync().execute(recipe);
+       /* new IngredientAsync().execute(recipe);*/
 
     }
+/*
 
     private class IngredientAsync extends AsyncTask<String,Void,ArrayList<Ingredient>>{
 
@@ -234,6 +287,7 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
             }
 
     }
+*/
 
     @Override
     public void onRecipeClick(View view, int position, String recipe) {
@@ -258,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
         protected ArrayList<Recipe> doInBackground(Void... voids) {
             ArrayList<Recipe> recipeResult = new ArrayList<>();
             try {
-                recipeResult = NetworkUtils.extractRecipeFromJson(run(NetworkUtils.buildBaseUrl().toString()));
+                recipeResult = NetworkUtils.allJson(run(NetworkUtils.buildBaseUrl().toString()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -274,6 +328,10 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
                 controlViewOnLoad(false);
                 mRecipeResult = recipeResult;
                 mAdapter.setRecipe(mRecipeResult);
+                /*Intent intent = new Intent(MainActivity.this,BakingDatabaseUpdateService.class);
+                intent.setAction(BakingDatabaseUpdateService.INSERT_RECIPE);
+                intent.putParcelableArrayListExtra(getString(R.string.recipe_list),mRecipeResult);
+                startService(intent);*/
             }
         }
     }

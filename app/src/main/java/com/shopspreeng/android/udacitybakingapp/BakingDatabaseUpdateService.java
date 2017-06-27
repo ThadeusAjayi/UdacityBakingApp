@@ -1,6 +1,7 @@
 package com.shopspreeng.android.udacitybakingapp;
 
 import android.app.IntentService;
+import android.content.AsyncTaskLoader;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.Context;
@@ -8,10 +9,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.shopspreeng.android.udacitybakingapp.data.BakingContract;
+import com.shopspreeng.android.udacitybakingapp.data.DatabaseUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -21,6 +23,8 @@ import java.util.List;
  * helper methods.
  */
 public class BakingDatabaseUpdateService extends IntentService {
+
+    public static final String TAG = BakingDatabaseUpdateService.class.getSimpleName();
     // TODO: Rename actions, choose action names that describe tasks that this
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     private static final String ACTION_FOO = "com.shopspreeng.android.udacitybakingapp.action.FOO";
@@ -28,73 +32,64 @@ public class BakingDatabaseUpdateService extends IntentService {
 
     // TODO: Rename parameters
     private static final String EXTRA_PARAM1 = "com.shopspreeng.android.udacitybakingapp.extra.PARAM1";
-    private static final String EXTRA_PARAM2 = "com.shopspreeng.android.udacitybakingapp.extra.PARAM2";
-    public static final String UPDATE_DB = "update-db";
+    public static final String QUERY_ALL = "query_all";
+    public static final String INSERT_RECIPE = "insert_recipe";
 
-    SQLiteDatabase mDb;
-
+    DatabaseUtils dbUtils = new DatabaseUtils();
 
 
     public BakingDatabaseUpdateService() {
         super("BakingDatabaseUpdateService");
     }
 
-    /**
-     * Starts this service to perform action Foo with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionFoo(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, BakingDatabaseUpdateService.class);
-        intent.setAction(ACTION_FOO);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
-
-    /**
-     * Starts this service to perform action Baz with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionBaz(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, BakingDatabaseUpdateService.class);
-        intent.setAction(ACTION_BAZ);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             final String action = intent.getAction();
-            if (UPDATE_DB.equals(action)) {
-
+            if (INSERT_RECIPE.equals(action)) {
+                ArrayList<Recipe> recipes = intent.getParcelableArrayListExtra(getString(R.string.recipe_list));
+                insertAllrecipe(recipes);
+            }else if(QUERY_ALL.equals(action)){
+                queryAllRecipe();
             }
         }
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private void insertRecipeToDb(ArrayList<Recipe> param1) {
-        // TODO: Handle action Foo
+    private void insertAllrecipe(final ArrayList<Recipe> recipes) {
 
-        throw new UnsupportedOperationException("Not yet implemented");
+        new AsyncTaskLoader<Void>(getApplicationContext()) {
+            @Override
+            public Void loadInBackground() {
+//not working yet
+               /* getContentResolver().delete(BakingContract.BakingEntry.CONTENT_URI,null,null);*/
+
+                ContentValues [] cv = dbUtils.getRecipeCvArray(recipes);
+
+                int rows = getContentResolver().bulkInsert(BakingContract.BakingEntry.CONTENT_URI,cv);
+
+                if(rows > 0){
+                    Log.v("Bulk Insert successful", rows +" rows inserted");
+                }else {
+                    throw new UnsupportedOperationException("Not yet implemented");
+                }
+                return null;
+            }
+        }.forceLoad();
+
     }
 
     /**
      * Handle action Baz in the provided background thread with the provided
      * parameters.
      */
-    private void handleActionBaz(String param1, String param2) {
-        // TODO: Handle action Baz
-        throw new UnsupportedOperationException("Not yet implemented");
+    private Cursor queryAllRecipe() {
+
+        return  getContentResolver().query(BakingContract.BakingEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+
     }
 }
