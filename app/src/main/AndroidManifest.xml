@@ -51,7 +51,7 @@
         <provider
             android:name="com.shopspreeng.android.udacitybakingapp.data.BakingContentProvider"
             android:authorities="com.shopspreeng.android.udacitybakingapp"
-            android:exported="false"/>
+            android:exported="true"/>
 
     </application>
 

@@ -125,9 +125,7 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
                     controlViewOnLoad(false);
                     if (data.getCount() > 0) {
                         data.moveToPosition(2);
-                        Log.v(TAG + " database cursor size", " " + data.getString(data.getColumnIndex(BakingContract.BakingEntry.RECIPE)));
                         mRecipeResult = databaseUtils.cursorToArrayListRecipe(data);
-                        Log.v(TAG + " convetrCursor", mRecipeResult.get(1).toString());
                         mAdapter.setRecipe(mRecipeResult);
                     } else {
                         if (!isThereInternetConnection()) {
@@ -176,7 +174,6 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
     @Override
     public void onItemClick(View view, int position, final String recipe) {
 
-
         Intent stepIntent = new Intent(MainActivity.this, DetailActivity.class);
 
         stepIntent.putExtra(getString(R.string.name),recipe);
@@ -185,109 +182,7 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
 
         startActivity(stepIntent);
 
-/*
-
-        if(!isThereInternetConnection()){
-            errorView.setVisibility(View.INVISIBLE);
-            Snackbar.make(errorView,R.string.no_internet, BaseTransientBottomBar.LENGTH_SHORT).show();
-            return;
-        }
-
-        if(isLoading){
-            return;
-        }
-*/
-
-       /* new IngredientAsync().execute(recipe);*/
-
     }
-/*
-
-    private class IngredientAsync extends AsyncTask<String,Void,ArrayList<Ingredient>>{
-
-        String globalString;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            controlViewOnLoad(true);
-            errorView.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-            protected ArrayList<Ingredient> doInBackground(String... strings) {
-
-                globalString = strings[0];
-                ArrayList<Ingredient> result = new ArrayList<>();
-                try {
-                    result = NetworkUtils.extractIngredientsFromJson(run(NetworkUtils.buildBaseUrl().toString()), globalString);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return result;
-            }
-
-            @Override
-            protected void onPostExecute(ArrayList<Ingredient> ingredient) {
-                super.onPostExecute(ingredient);
-
-                Log.v("Ingredients size", String.valueOf(ingredient.size()));
-                if(ingredient == null){
-                    errorView.setVisibility(View.INVISIBLE);
-                    Snackbar.make(errorView,R.string.error_loading, BaseTransientBottomBar.LENGTH_INDEFINITE).show();
-                }else {
-                    ingredients = ingredient;
-                    new StepAsync().execute(globalString);
-                }
-
-            }
-    }
-
-    private class StepAsync extends AsyncTask<String,Void,ArrayList<Step>>{
-
-        String globalString;
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
-
-            @Override
-            protected ArrayList<Step> doInBackground(String... strings) {
-
-                globalString = strings[0];
-
-                ArrayList<Step> result = new ArrayList<>();
-                try {
-                    result.add(0,null);
-                    result.addAll(NetworkUtils.extractStepsFromJson(run(NetworkUtils.buildBaseUrl().toString()),globalString));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return result;
-            }
-
-            @Override
-            protected void onPostExecute(ArrayList<Step> step) {
-                super.onPostExecute(step);
-                controlViewOnLoad(false);
-
-                if(step != null) {
-                    Log.v("Step size", String.valueOf(step.size()));
-                    Intent stepIntent = new Intent(MainActivity.this, DetailActivity.class);
-
-                    stepIntent.putExtra(getString(R.string.name),globalString);
-
-                    stepIntent.putParcelableArrayListExtra(getString(R.string.steps), step);
-
-                    stepIntent.putParcelableArrayListExtra(getString(R.string.ingredients), ingredients);
-
-                    startActivity(stepIntent);
-                }
-            }
-
-    }
-*/
 
     @Override
     public void onRecipeClick(View view, int position, String recipe) {

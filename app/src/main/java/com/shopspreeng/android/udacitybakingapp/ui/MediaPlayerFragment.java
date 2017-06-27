@@ -300,7 +300,9 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
     @Override
     public void onPause() {
         super.onPause();
-        mExoPlayer.release();
+        if(mExoPlayer != null){
+            mExoPlayer.release();
+        }
     }
 
     @Override

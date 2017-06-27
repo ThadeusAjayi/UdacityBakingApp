@@ -26,18 +26,14 @@ public class BakingAppWidgetProvider extends AppWidgetProvider {
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
 
-        RemoteViews views;
-        if(width < 300){
-            views = new RemoteViews(context.getPackageName(), R.layout.baking_app_widget_provider);
-        }else{
-            views = getListViewRv(context);
-        }
+
+        RemoteViews views = getListViewRv(context);
 
 
         Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context,0,intent,0);
 
-        views.setOnClickPendingIntent(R.id.bake_image,pendingIntent);
+        //views.setOnClickPendingIntent(R.id.bake_image,pendingIntent);
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
@@ -51,7 +47,7 @@ public class BakingAppWidgetProvider extends AppWidgetProvider {
     }
 
     public static RemoteViews getListViewRv(Context context){
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.baking_app_listview_widget);
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.baking_app_widget_provider);
 
         Intent intent = new Intent(context, ListViewWidgetService.class);
         remoteViews.setRemoteAdapter(R.id.baking_list, intent);

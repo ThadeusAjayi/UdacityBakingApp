@@ -26,7 +26,6 @@ import static com.shopspreeng.android.udacitybakingapp.R.string.steps;
 public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailViewHolder> {
 
     ArrayList<Step> steps = new ArrayList<>();
-    ArrayList<Ingredient> ingred = new ArrayList<>();
     LayoutInflater inflater;
     ItemClickListener mClickListener;
 
@@ -40,10 +39,6 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
     public void setSteps(ArrayList<Step> steps){
         this.steps = steps;
         notifyDataSetChanged();
-    }
-
-    public void setIngred(ArrayList<Ingredient> ingred){
-        this.ingred = ingred;
     }
 
     @Override
@@ -64,7 +59,7 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
         Step step = steps.get(position);
             cvParams.height = 200;
             holder.detailText.setText(step.getShortDesc().toString());
-            holder.serial.setText(String.valueOf(position)+".");
+            holder.serial.setText(String.valueOf(position+1)+".");
 
 
     }
