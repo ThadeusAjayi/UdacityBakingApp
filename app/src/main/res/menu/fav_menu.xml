@@ -5,5 +5,5 @@
         android:id="@+id/fav"
         android:title="@string/fav"
         app:showAsAction="always"
-        android:icon="@mipmap/bake" />
+        android:icon="@drawable/chefdeselect" />
 </menu>

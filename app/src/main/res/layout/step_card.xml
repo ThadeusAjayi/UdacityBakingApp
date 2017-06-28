@@ -21,6 +21,15 @@
             android:layout_marginLeft="5dp"
             android:textStyle="italic"/>
 
+        <ImageView
+            android:id="@+id/step_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/chefdeselect"
+            android:foregroundGravity="top"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="40dp"/>
+
         <TextView
             android:id="@+id/title_view"
             android:layout_width="wrap_content"

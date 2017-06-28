@@ -81,11 +81,11 @@ public class ListViewWidgetService extends RemoteViewsService {
         public RemoteViews getViewAt(int i) {
             RemoteViews itemView = new RemoteViews(context.getPackageName(), R.layout.list_view_widget_item);
             if(steps == null || steps.size() == 0){
-                itemView.setViewVisibility(R.id.empty_widget, View.VISIBLE);
                 itemView.setTextViewText(R.id.empty_widget, getString(R.string.select_favorite));
                 return itemView;
             }
 
+            itemView.setViewVisibility(R.id.empty_widget, View.GONE);
 
             String step = steps.get(i).getShortDesc();
 
