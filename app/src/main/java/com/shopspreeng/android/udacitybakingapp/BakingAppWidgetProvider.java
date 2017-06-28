@@ -8,12 +8,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
 
 import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
 import com.shopspreeng.android.udacitybakingapp.ui.DetailActivity;
 import com.shopspreeng.android.udacitybakingapp.ui.MainActivity;
 import com.shopspreeng.android.udacitybakingapp.ui.PhoneMediaPlayerActivity;
+
+import static java.security.AccessController.getContext;
 
 /**
  * Implementation of App Widget functionality.
@@ -63,6 +66,7 @@ public class BakingAppWidgetProvider extends AppWidgetProvider {
 
         return remoteViews;
     }
+
 
     @Override
     public void onEnabled(Context context) {

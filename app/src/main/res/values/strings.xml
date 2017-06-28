@@ -29,5 +29,6 @@
     <!-- preference values -->
     <string name="pref_default_key">default</string>
     <string name="value"></string>
+    <string name="select_favorite">Select favourit in app</string>
 
 </resources>

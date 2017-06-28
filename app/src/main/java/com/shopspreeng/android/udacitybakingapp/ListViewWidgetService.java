@@ -3,7 +3,9 @@ package com.shopspreeng.android.udacitybakingapp;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.opengl.Visibility;
 import android.preference.PreferenceManager;
+import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -14,6 +16,8 @@ import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.util.ArrayList;
+
+import static android.R.attr.visibility;
 
 /**
  * Created by jayson surface on 27/06/2017.
@@ -49,13 +53,19 @@ public class ListViewWidgetService extends RemoteViewsService {
             Cursor mCursor = getContentResolver().query(BakingContract.BakingEntry.CONTENT_URI,null,
                                 BakingContract.BakingEntry.RECIPE +"=?",selectionArgs,null);
 
-            mCursor.moveToFirst();
+            if(mCursor == null || mCursor.getCount() == 0){
+                recipes = null;
+                steps = new ArrayList<>();
+            }else {
 
-            recipes = DataUtils.cursorToArrayListRecipe(mCursor).get(0);
+                mCursor.moveToFirst();
 
-            String step = recipes.getmSteps();
+                recipes = DataUtils.cursorToArrayListRecipe(mCursor).get(0);
 
-            steps = DataUtils.extractStepsFromJson(step);
+                String step = recipes.getmSteps();
+
+                steps = DataUtils.extractStepsFromJson(step);
+            }
 
         }
 
@@ -69,8 +79,13 @@ public class ListViewWidgetService extends RemoteViewsService {
 
         @Override
         public RemoteViews getViewAt(int i) {
-
             RemoteViews itemView = new RemoteViews(context.getPackageName(), R.layout.list_view_widget_item);
+            if(steps == null || steps.size() == 0){
+                itemView.setViewVisibility(R.id.empty_widget, View.VISIBLE);
+                itemView.setTextViewText(R.id.empty_widget, getString(R.string.select_favorite));
+                return itemView;
+            }
+
 
             String step = steps.get(i).getShortDesc();
 
