@@ -32,7 +32,11 @@ public class PhoneMediaPlayerActivity extends AppCompatActivity implements Media
         mediaPlayerFragment.setPosition(position);
         mediaPlayerFragment.setText(steps.get(position).getDesc());
         mediaPlayerFragment.setSteps(steps);
-        mediaPlayerFragment.setVideoUrl(steps.get(position).getVideoUrl());
+        String videoUrl = steps.get(position).getVideoUrl();
+        if(videoUrl == ""){
+            videoUrl = steps.get(position).getThumbnailUrl();
+        }
+        mediaPlayerFragment.setVideoUrl(videoUrl);
 
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.media_container,mediaPlayerFragment)

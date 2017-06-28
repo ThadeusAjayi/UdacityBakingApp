@@ -51,15 +51,6 @@ import static android.media.CamcorderProfile.get;
  * create an instance of this fragment.
  */
 public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventListener{
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
     private static final String TAG = DetailActivity.class.getSimpleName();
 
     private OnMediaPlayerFragmentInteraction mListener;
@@ -256,7 +247,6 @@ public class MediaPlayerFragment extends Fragment implements ExoPlayer.EventList
     }
 
     public interface OnMediaPlayerFragmentInteraction {
-        // TODO: Update argument type and name
         void onMediaPlayerInteraction(Uri uri);
     }
     public void setSteps(ArrayList<Step> desc){

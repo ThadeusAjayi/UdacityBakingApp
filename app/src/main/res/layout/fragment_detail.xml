@@ -1,6 +1,24 @@
+<LinearLayout android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+<TextView
+    android:id="@+id/ingredient_tv"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/TitleLinks"
+    android:padding="8dp"
+    android:textSize="16dp"
+    android:textColor="@android:color/background_dark"
+    android:background="@color/highlights"
+    android:layout_margin="8dp"/>
+
 <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/detail_recycler"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background" />
 
+</LinearLayout>

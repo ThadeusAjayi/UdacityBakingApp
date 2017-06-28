@@ -1,5 +1,7 @@
 package com.shopspreeng.android.udacitybakingapp.data;
 
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -28,7 +30,7 @@ import static com.shopspreeng.android.udacitybakingapp.R.string.steps;
  * Created by jayson surface on 13/06/2017.
  */
 
-public class NetworkUtils {
+public class DataUtils {
 
     public static final String BASE_URL = "http://go.udacity.com/android-baking-app-json";
 
@@ -79,8 +81,9 @@ public class NetworkUtils {
                 String sDesc = stepsObject.getString("shortDescription");
                 String desc = stepsObject.getString("description");
                 String video = stepsObject.getString("videoURL");
+                String thumb = stepsObject.getString("thumbnailURL");
 
-                jsonResult.add(new Step(id,sDesc,desc,video));
+                jsonResult.add(new Step(id,sDesc,desc,video,thumb));
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -108,6 +111,51 @@ public class NetworkUtils {
         }
 
         return resultRecipe;
+    }
+
+    public static String ingredientToString(ArrayList<Ingredient> list){
+        String mList = "";
+        for(Ingredient a: list){
+            mList += "o \t" + a.getmIngredient() + " (" + a.getmQty() + " " + a.getmMeasure() + ")\n";
+        }
+        return mList;
+    }
+
+    //pass data here before recipe bulk insert
+    public static ContentValues[] getRecipeCvArray(ArrayList<Recipe> recipeArrayList){
+
+        ContentValues[] result = new ContentValues[recipeArrayList.size()];
+
+        ContentValues contentValues;
+
+        int count = 0;
+        for(Recipe a : recipeArrayList){
+            contentValues = new ContentValues();
+            contentValues.put(BakingContract.BakingEntry.RECIPE,a.getmName());
+            contentValues.put(BakingContract.BakingEntry.INGREDIENTS,a.getmIngredients());
+            contentValues.put(BakingContract.BakingEntry.STEPS,a.getmSteps());
+            result[count] = contentValues;
+            count++;
+        }
+        return result;
+    }
+
+    public static ArrayList<Recipe> cursorToArrayListRecipe(Cursor cursor){
+
+        ArrayList<Recipe> result = new ArrayList<>();
+        cursor.moveToFirst();
+        for(int i = 0; i < cursor.getCount(); i++){
+            cursor.moveToPosition(i);
+            String name = cursor.getString(cursor.getColumnIndex(BakingContract.BakingEntry.RECIPE));
+            String ingredient = cursor.getString(cursor.getColumnIndex(BakingContract.BakingEntry.INGREDIENTS));
+            String step = cursor.getString(cursor.getColumnIndex(BakingContract.BakingEntry.STEPS));
+
+            result.add(new Recipe(name,ingredient,step));
+
+        }
+        cursor.close();
+
+        return result;
     }
 
 }

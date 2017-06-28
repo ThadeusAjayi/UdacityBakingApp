@@ -29,7 +29,6 @@ public class DetailAdapter extends RecyclerView.Adapter<DetailAdapter.DetailView
     LayoutInflater inflater;
     ItemClickListener mClickListener;
 
-    public DetailAdapter(){}
 
     public DetailAdapter(Context context,ArrayList<Step> steps){
         inflater = LayoutInflater.from(context);

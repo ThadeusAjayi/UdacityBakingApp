@@ -9,13 +9,14 @@ import android.os.Parcelable;
 
 public class Step extends Recipe implements Parcelable{
 
-    private String id, shortDesc, desc, videoUrl;
+    private String id, shortDesc, desc, videoUrl, thumbnailUrl;
 
-    public Step(String id, String shortDesc, String desc, String videoUrl){
+    public Step(String id, String shortDesc, String desc, String videoUrl, String thumbnailUrl){
         this.id = id;
         this.shortDesc = shortDesc;
         this.desc = desc;
         this.videoUrl = videoUrl;
+        this.thumbnailUrl = thumbnailUrl;
     }
 
     protected Step(Parcel in) {
@@ -23,6 +24,7 @@ public class Step extends Recipe implements Parcelable{
         shortDesc = in.readString();
         desc = in.readString();
         videoUrl = in.readString();
+        thumbnailUrl = in.readString();
     }
 
     public static final Creator<Step> CREATOR = new Creator<Step>() {
@@ -69,6 +71,14 @@ public class Step extends Recipe implements Parcelable{
         this.videoUrl = videoUrl;
     }
 
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl){
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -80,6 +90,7 @@ public class Step extends Recipe implements Parcelable{
         parcel.writeString(shortDesc);
         parcel.writeString(desc);
         parcel.writeString(videoUrl);
+        parcel.writeString(thumbnailUrl);
     }
 
     @Override
@@ -89,6 +100,7 @@ public class Step extends Recipe implements Parcelable{
                 ", shortDesc='" + shortDesc + '\'' +
                 ", desc='" + desc + '\'' +
                 ", videoUrl='" + videoUrl + '\'' +
+                ", thumbnailUrl='" + thumbnailUrl + '\'' +
                 '}';
     }
 }

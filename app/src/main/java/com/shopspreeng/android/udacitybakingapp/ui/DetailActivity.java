@@ -1,33 +1,34 @@
 package com.shopspreeng.android.udacitybakingapp.ui;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.shopspreeng.android.udacitybakingapp.BakingAppWidgetProvider;
 import com.shopspreeng.android.udacitybakingapp.R;
+import com.shopspreeng.android.udacitybakingapp.data.DataUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
-import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 import com.shopspreeng.android.udacitybakingapp.data.Step;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.shopspreeng.android.udacitybakingapp.R.bool.isTablet;
-import static com.shopspreeng.android.udacitybakingapp.R.string.position;
 
 public class DetailActivity extends AppCompatActivity implements DetailActivityFragment.OnStepInteractionListener,
-        MediaPlayerFragment.OnMediaPlayerFragmentInteraction {
+        MediaPlayerFragment.OnMediaPlayerFragmentInteraction, SharedPreferences.OnSharedPreferenceChangeListener {
 
     String recipeName;
 
@@ -37,10 +38,49 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == android.R.id.home){
-            onBackPressed();
+        int itemId = item.getItemId();
+
+        switch (itemId){
+            case android.R.id.home:
+                onBackPressed();
+                break;
+            case R.id.fav:
+                setFavPreference();
+                Toast.makeText(this, "Saved favourite", Toast.LENGTH_SHORT).show();
+                break;
+            default:
+                break;
         }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    public void setFavPreference(){
+        SharedPreferences fav = getDefaultSharedPreferences(this);
+//TODO try apply and move code to on sharepreferece changed
+        SharedPreferences.Editor edit = fav.edit();
+        edit.putString(getString(R.string.pref_default_key),recipeName);
+        edit.commit();
+//TODO set image change on click
+        fav.registerOnSharedPreferenceChangeListener(this);
+
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getApplicationContext());
+        int [] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(getApplicationContext(),BakingAppWidgetProvider.class));
+
+        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.baking_list);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.fav_menu,menu);
+        return true;
     }
 
     @Override
@@ -59,7 +99,7 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
             Recipe getRecipe = intent.getParcelableExtra(getString(R.string.recipe_list));
 
-            steps = NetworkUtils.extractStepsFromJson(getRecipe.getmSteps());
+            steps = DataUtils.extractStepsFromJson(getRecipe.getmSteps());
 
         }else {
             recipeName = savedInstanceState.getString(getString(R.string.name));
@@ -73,16 +113,17 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
         FragmentManager fragmentManager = getSupportFragmentManager();
 
-        //TODO create a method to convert parcelable intent and convert to ArrayList of Ingredients and Steps
-
-
         if(tabletSize) {
 
             MediaPlayerFragment mediaPlayerFragment = new MediaPlayerFragment();
             mediaPlayerFragment.setPosition(1);
             mediaPlayerFragment.setText(steps.get(1).getDesc());
             mediaPlayerFragment.setSteps(steps);
-            mediaPlayerFragment.setVideoUrl(steps.get(1).getVideoUrl());
+            String videoUrl = steps.get(1).getVideoUrl();
+            if(videoUrl == ""){
+                videoUrl = steps.get(1).getThumbnailUrl();
+            }
+            mediaPlayerFragment.setVideoUrl(videoUrl);
 
             fragmentManager.beginTransaction()
                     .add(R.id.detail_container,detailActivityFragment)
@@ -92,7 +133,7 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
             detailActivityFragment.setStepsList(steps);
             Recipe getRecipe = getIntent().getParcelableExtra(getString(R.string.recipe_list));
-            ArrayList<Ingredient> toDetail = NetworkUtils.extractIngredientsFromJson(getRecipe.getmIngredients());
+            ArrayList<Ingredient> toDetail = DataUtils.extractIngredientsFromJson(getRecipe.getmIngredients());
             detailActivityFragment.setIngredientList(toDetail);
 
             getSupportFragmentManager().beginTransaction()
@@ -142,4 +183,9 @@ public class DetailActivity extends AppCompatActivity implements DetailActivityF
 
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+
+            //TODO set value to the widget and change icon color
+    }
 }

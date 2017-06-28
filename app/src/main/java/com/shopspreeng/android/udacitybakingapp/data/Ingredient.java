@@ -29,7 +29,6 @@ public class Ingredient extends Recipe implements Parcelable{
     };
 
 
-    //TODO reformat toString function to show on step fragment
     @Override
     public String toString() {
         return "Ingredient{" +

@@ -1,39 +1,28 @@
 package com.shopspreeng.android.udacitybakingapp.ui;
 
-import android.app.IntentService;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.annotation.Nullable;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.widget.CursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.shopspreeng.android.udacitybakingapp.BakingDatabaseUpdateService;
 import com.shopspreeng.android.udacitybakingapp.R;
 import com.shopspreeng.android.udacitybakingapp.data.BakingContract;
-import com.shopspreeng.android.udacitybakingapp.data.DatabaseUtils;
-import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
-import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
+import com.shopspreeng.android.udacitybakingapp.data.DataUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
-import com.shopspreeng.android.udacitybakingapp.data.Step;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,13 +32,10 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.shopspreeng.android.udacitybakingapp.R.bool.isTablet;
-import static com.shopspreeng.android.udacitybakingapp.R.string.ingredients;
 
 
 public class MainActivity extends AppCompatActivity implements MainRecipeFragment.OnRecipeClickListener,
         MainRecipeAdapter.ItemClickListener {
-
-    private static final String TAG = MainActivity.class.getSimpleName();
 
     private RecyclerView mRecyclerView;
 
@@ -64,12 +50,6 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
     ProgressBar loadingPb;
 
     Snackbar snackOver;
-
-    DatabaseUtils databaseUtils = new DatabaseUtils();
-
-    ArrayList<Ingredient> ingredients;
-
-
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -125,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
                     controlViewOnLoad(false);
                     if (data.getCount() > 0) {
                         data.moveToPosition(2);
-                        mRecipeResult = databaseUtils.cursorToArrayListRecipe(data);
+                        mRecipeResult = DataUtils.cursorToArrayListRecipe(data);
                         mAdapter.setRecipe(mRecipeResult);
                     } else {
                         if (!isThereInternetConnection()) {
@@ -207,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements MainRecipeFragmen
         protected ArrayList<Recipe> doInBackground(Void... voids) {
             ArrayList<Recipe> recipeResult = new ArrayList<>();
             try {
-                recipeResult = NetworkUtils.allJson(run(NetworkUtils.buildBaseUrl().toString()));
+                recipeResult = DataUtils.allJson(run(DataUtils.buildBaseUrl().toString()));
             } catch (IOException e) {
                 e.printStackTrace();
             }

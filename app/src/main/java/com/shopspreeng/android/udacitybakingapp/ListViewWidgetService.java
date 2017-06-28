@@ -3,17 +3,15 @@ package com.shopspreeng.android.udacitybakingapp;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.Bundle;
-import android.util.Log;
+import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import com.shopspreeng.android.udacitybakingapp.data.BakingContract;
+import com.shopspreeng.android.udacitybakingapp.data.DataUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Ingredient;
-import com.shopspreeng.android.udacitybakingapp.data.NetworkUtils;
 import com.shopspreeng.android.udacitybakingapp.data.Recipe;
 import com.shopspreeng.android.udacitybakingapp.data.Step;
-import com.shopspreeng.android.udacitybakingapp.ui.DetailActivity;
 
 import java.util.ArrayList;
 
@@ -30,7 +28,9 @@ public class ListViewWidgetService extends RemoteViewsService {
     class ListRemoteViewFactory implements RemoteViewsService.RemoteViewsFactory{
 
         Context context;
-        Cursor mCursor;
+        ArrayList<Step> steps;
+        String recipe;
+        Recipe recipes;
 
         public ListRemoteViewFactory(Context applicationContext){
             context = applicationContext;
@@ -43,52 +43,53 @@ public class ListViewWidgetService extends RemoteViewsService {
 
         @Override
         public void onDataSetChanged() {
-            mCursor = getContentResolver().query(BakingContract.BakingEntry.CONTENT_URI,null,null,null,null);
+            recipe = PreferenceManager.getDefaultSharedPreferences(context)
+                    .getString(getString(R.string.pref_default_key),getString(R.string.value));
+            String [] selectionArgs = {recipe};
+            Cursor mCursor = getContentResolver().query(BakingContract.BakingEntry.CONTENT_URI,null,
+                                BakingContract.BakingEntry.RECIPE +"=?",selectionArgs,null);
+
+            mCursor.moveToFirst();
+
+            recipes = DataUtils.cursorToArrayListRecipe(mCursor).get(0);
+
+            String step = recipes.getmSteps();
+
+            steps = DataUtils.extractStepsFromJson(step);
+
         }
 
         @Override
-        public void onDestroy() {
-            mCursor.close();
-        }
+        public void onDestroy() {}
 
         @Override
         public int getCount() {
-            return mCursor.getCount();
+            return steps.size();
         }
 
         @Override
         public RemoteViews getViewAt(int i) {
-            mCursor.moveToPosition(i);
-            String recipeName = mCursor.getString(mCursor.getColumnIndex(BakingContract.BakingEntry.RECIPE));
-            String ingredients = mCursor.getString(mCursor.getColumnIndex(BakingContract.BakingEntry.INGREDIENTS));
-            String step = mCursor.getString(mCursor.getColumnIndex(BakingContract.BakingEntry.STEPS));
+
             RemoteViews itemView = new RemoteViews(context.getPackageName(), R.layout.list_view_widget_item);
 
-            itemView.setTextViewText(R.id.item_text,recipeName);
-            itemView.setImageViewResource(R.id.item_image,setImage(recipeName));
+            String step = steps.get(i).getShortDesc();
 
+            itemView.setTextViewText(R.id.item_text, step);
 
-            Recipe recipe = new Recipe(recipeName,ingredients,step);
+            int position = i + 1;
+            itemView.setTextViewText(R.id.item_serial, position + " >");
 
             Intent fillInIntent = new Intent();
-            fillInIntent.putExtra(getString(R.string.name),recipeName);
-            fillInIntent.putExtra(getString(R.string.recipe_list),recipe);
+            fillInIntent.putExtra(getString(R.string.name),recipe);
+                fillInIntent.putExtra(getString(R.string.recipe_list),recipes);
+                fillInIntent.putParcelableArrayListExtra(getString(R.string.steps), steps);
+                fillInIntent.putExtra(getString(R.string.position), i);
+
             itemView.setOnClickFillInIntent(R.id.item_text, fillInIntent);
 
             return itemView;
         }
 
-        public int setImage(String recipe){
-            if(recipe.contains("Yellow")){
-                return R.drawable.yellowcake;
-            }else if(recipe.contains("Brownies")){
-                return R.drawable.brownies;
-            }else if(recipe.contains("Nutella")){
-                return R.drawable.nutella;
-            }else {
-                return R.drawable.cheesecake;
-            }
-        }
 
         @Override
         public RemoteViews getLoadingView() {
