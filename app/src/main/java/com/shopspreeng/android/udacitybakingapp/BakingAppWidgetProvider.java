@@ -58,7 +58,7 @@ public class BakingAppWidgetProvider extends AppWidgetProvider {
         if(tabletSize){
             appIntent = new Intent(context,DetailActivity.class);
         }else {
-            appIntent = new Intent(context,PhoneMediaPlayerActivity.class);
+            appIntent = new Intent(context,DetailActivity.class);
         }
 
         PendingIntent appPendingIntent = PendingIntent.getActivity(context,0,appIntent,PendingIntent.FLAG_UPDATE_CURRENT);
